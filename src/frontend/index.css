@@ -1,0 +1,136 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+
+    /* EduTrack - Professional Academic Blue */
+    --background: 0.975 0.005 240;
+    --foreground: 0.16 0.02 255;
+    --card: 1 0 0;
+    --card-foreground: 0.16 0.02 255;
+    --popover: 1 0 0;
+    --popover-foreground: 0.16 0.02 255;
+    --primary: 0.475 0.175 255;
+    --primary-foreground: 0.99 0 0;
+    --secondary: 0.93 0.02 240;
+    --secondary-foreground: 0.25 0.04 255;
+    --muted: 0.94 0.01 240;
+    --muted-foreground: 0.52 0.04 255;
+    --accent: 0.89 0.05 240;
+    --accent-foreground: 0.25 0.04 255;
+    --destructive: 0.577 0.245 27.325;
+    --destructive-foreground: 0.985 0 0;
+    --border: 0.88 0.02 240;
+    --input: 0.88 0.02 240;
+    --ring: 0.475 0.175 255;
+
+    /* Charts */
+    --chart-1: 0.475 0.175 255;
+    --chart-2: 0.6 0.14 195;
+    --chart-3: 0.55 0.18 145;
+    --chart-4: 0.65 0.2 65;
+    --chart-5: 0.62 0.22 25;
+
+    /* Sidebar - Deep Navy */
+    --sidebar: 0.19 0.055 265;
+    --sidebar-foreground: 0.92 0.015 255;
+    --sidebar-primary: 0.55 0.18 240;
+    --sidebar-primary-foreground: 0.99 0 0;
+    --sidebar-accent: 0.28 0.065 265;
+    --sidebar-accent-foreground: 0.97 0.01 255;
+    --sidebar-border: 0.28 0.04 265;
+    --sidebar-ring: 0.55 0.18 240;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer components {
+  .sidebar-nav-item {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 cursor-pointer;
+    color: oklch(var(--sidebar-foreground) / 0.65);
+  }
+
+  .sidebar-nav-item:hover {
+    background: oklch(var(--sidebar-accent));
+    color: oklch(var(--sidebar-accent-foreground));
+  }
+
+  .sidebar-nav-item.active {
+    background: oklch(var(--sidebar-primary) / 0.2);
+    color: oklch(0.8 0.12 245);
+    border-left: 3px solid oklch(0.68 0.18 245);
+  }
+
+  .stat-card {
+    @apply relative overflow-hidden rounded-xl p-5 border border-border;
+    background: oklch(var(--card));
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    transform: translate(25%, -25%);
+    opacity: 0.08;
+  }
+
+  .badge-high-risk {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold;
+    background: oklch(0.95 0.04 25);
+    color: oklch(0.5 0.22 25);
+  }
+
+  .badge-weak {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold;
+    background: oklch(0.96 0.05 65);
+    color: oklch(0.5 0.18 65);
+  }
+
+  .badge-good {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold;
+    background: oklch(0.93 0.07 145);
+    color: oklch(0.4 0.18 145);
+  }
+
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+    .print-only {
+      display: block !important;
+    }
+    body {
+      background: white !important;
+    }
+    .print-area {
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+  }
+
+  .print-only {
+    display: none;
+  }
+}
