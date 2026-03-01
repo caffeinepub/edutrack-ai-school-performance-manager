@@ -1,17 +1,18 @@
-import { useState, type ReactNode } from "react";
-import Sidebar from "./Sidebar";
-import { useAuth } from "../context/AuthContext";
-import { useAppContext } from "../App";
-import { Bell, LogOut, Menu, User } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useNavigate } from "@tanstack/react-router";
+import { Bell, LogOut, Menu, Settings, User } from "lucide-react";
+import { type ReactNode, useState } from "react";
+import { useAppContext } from "../App";
+import { useAuth } from "../context/AuthContext";
 import { useIsMobile } from "../hooks/use-mobile";
+import Sidebar from "./Sidebar";
 
 interface LayoutProps {
   children: ReactNode;
@@ -22,14 +23,20 @@ export default function Layout({ children }: LayoutProps) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const isMobile = useIsMobile();
   const { logout } = useAuth();
-  const { userName } = useAppContext();
+  const { userName, isAdmin } = useAppContext();
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
   };
 
   const initials = userName
-    ? userName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+    ? userName
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
     : "U";
 
   return (
@@ -40,7 +47,10 @@ export default function Layout({ children }: LayoutProps) {
           className="shrink-0 transition-all duration-300"
           style={{ width: sidebarCollapsed ? "64px" : "220px" }}
         >
-          <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed((v) => !v)} />
+          <Sidebar
+            collapsed={sidebarCollapsed}
+            onToggle={() => setSidebarCollapsed((v) => !v)}
+          />
         </div>
       )}
 
@@ -48,7 +58,10 @@ export default function Layout({ children }: LayoutProps) {
       {isMobile && mobileSidebarOpen && (
         <div className="fixed inset-0 z-50 flex">
           <div className="w-[220px]">
-            <Sidebar collapsed={false} onToggle={() => setMobileSidebarOpen(false)} />
+            <Sidebar
+              collapsed={false}
+              onToggle={() => setMobileSidebarOpen(false)}
+            />
           </div>
           <button
             type="button"
@@ -86,14 +99,26 @@ export default function Layout({ children }: LayoutProps) {
               type="button"
               className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors relative"
             >
-              <Bell className="w-4.5 h-4.5" style={{ width: "18px", height: "18px" }} />
+              <Bell
+                className="w-4.5 h-4.5"
+                style={{ width: "18px", height: "18px" }}
+              />
             </button>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button type="button" className="flex items-center gap-2 pl-2 rounded-lg hover:bg-accent transition-colors p-1">
+                <button
+                  type="button"
+                  className="flex items-center gap-2 pl-2 rounded-lg hover:bg-accent transition-colors p-1"
+                >
                   <Avatar className="h-7 w-7">
-                    <AvatarFallback className="text-xs font-semibold" style={{ background: "oklch(0.475 0.175 255 / 0.15)", color: "oklch(0.35 0.15 255)" }}>
+                    <AvatarFallback
+                      className="text-xs font-semibold"
+                      style={{
+                        background: "oklch(0.475 0.175 255 / 0.15)",
+                        color: "oklch(0.35 0.15 255)",
+                      }}
+                    >
                       {initials}
                     </AvatarFallback>
                   </Avatar>
@@ -103,10 +128,21 @@ export default function Layout({ children }: LayoutProps) {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem className="text-muted-foreground text-xs" disabled>
+                <DropdownMenuItem
+                  className="text-muted-foreground text-xs"
+                  disabled
+                >
                   <User className="w-3.5 h-3.5 mr-2" />
                   {userName}
                 </DropdownMenuItem>
+                {isAdmin && (
+                  <DropdownMenuItem
+                    onClick={() => navigate({ to: "/settings" })}
+                  >
+                    <Settings className="w-3.5 h-3.5 mr-2" />
+                    Settings
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
                   onClick={handleLogout}
                   className="text-destructive focus:text-destructive"
@@ -120,15 +156,18 @@ export default function Layout({ children }: LayoutProps) {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
-          {children}
-        </main>
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
 
         {/* Footer */}
         <footer className="shrink-0 h-8 flex items-center justify-center border-t border-border px-4 no-print">
           <p className="text-xs text-muted-foreground">
             © 2026. Built with ❤️ using{" "}
-            <a href="https://caffeine.ai" target="_blank" rel="noopener noreferrer" className="font-medium hover:text-primary transition-colors">
+            <a
+              href="https://caffeine.ai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium hover:text-primary transition-colors"
+            >
               caffeine.ai
             </a>
           </p>

@@ -1,12 +1,7 @@
-import { useState } from "react";
-import { useAllStudents, useAllFeedback, useAddFeedback } from "../hooks/useQueries";
-import { toast } from "sonner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -14,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -22,9 +18,31 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { MessageSquare, Star, CheckCircle, XCircle, Loader2, Send } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  CheckCircle,
+  Loader2,
+  MessageSquare,
+  Send,
+  Star,
+  XCircle,
+} from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import {
+  useAddFeedback,
+  useAllFeedback,
+  useAllStudents,
+} from "../hooks/useQueries";
 
-const SUBJECTS = ["Mathematics", "Science", "English", "Social Science", "Hindi", "Computer"];
+const SUBJECTS = [
+  "Mathematics",
+  "Science",
+  "English",
+  "Social Science",
+  "Hindi",
+  "Computer",
+];
 
 interface FeedbackForm {
   studentId: string;
@@ -46,7 +64,11 @@ const emptyForm: FeedbackForm = {
   remarks: "",
 };
 
-function StarRating({ value, onChange, max = 5 }: { value: number; onChange: (v: number) => void; max?: number }) {
+function StarRating({
+  value,
+  onChange,
+  max = 5,
+}: { value: number; onChange: (v: number) => void; max?: number }) {
   return (
     <div className="flex items-center gap-1">
       {Array.from({ length: max }).map((_, i) => (
@@ -65,7 +87,9 @@ function StarRating({ value, onChange, max = 5 }: { value: number; onChange: (v:
           />
         </button>
       ))}
-      <span className="ml-2 text-sm font-semibold text-muted-foreground">{value}/{max}</span>
+      <span className="ml-2 text-sm font-semibold text-muted-foreground">
+        {value}/{max}
+      </span>
     </div>
   );
 }
@@ -130,77 +154,144 @@ export default function FeedbackPage() {
             </CardHeader>
             <CardContent className="space-y-5">
               <div className="space-y-1.5">
-                <Label>Student <span className="text-destructive">*</span></Label>
-                <Select value={form.studentId} onValueChange={(v) => setForm((p) => ({ ...p, studentId: v }))}>
+                <Label>
+                  Student <span className="text-destructive">*</span>
+                </Label>
+                <Select
+                  value={form.studentId}
+                  onValueChange={(v) =>
+                    setForm((p) => ({ ...p, studentId: v }))
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select student" />
                   </SelectTrigger>
                   <SelectContent>
                     {studentsLoading ? (
-                      <SelectItem value="loading" disabled>Loading...</SelectItem>
-                    ) : students.map((s) => (
-                      <SelectItem key={s.id.toString()} value={s.id.toString()}>
-                        {s.name} ({s.className}-{s.section})
+                      <SelectItem value="loading" disabled>
+                        Loading...
+                      </SelectItem>
+                    ) : (
+                      students.map((s) => (
+                        <SelectItem
+                          key={s.id.toString()}
+                          value={s.id.toString()}
+                        >
+                          {s.name} ({s.className}-{s.section})
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>
+                  Subject <span className="text-destructive">*</span>
+                </Label>
+                <Select
+                  value={form.subject}
+                  onValueChange={(v) => setForm((p) => ({ ...p, subject: v }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select subject" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SUBJECTS.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="space-y-1.5">
-                <Label>Subject <span className="text-destructive">*</span></Label>
-                <Select value={form.subject} onValueChange={(v) => setForm((p) => ({ ...p, subject: v }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select subject" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2 p-4 rounded-xl" style={{ background: "oklch(0.975 0.005 240)" }}>
+              <div
+                className="space-y-2 p-4 rounded-xl"
+                style={{ background: "oklch(0.975 0.005 240)" }}
+              >
                 <div className="space-y-1">
-                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Concept Clarity</Label>
-                  <StarRating value={form.conceptClarity} onChange={(v) => setForm((p) => ({ ...p, conceptClarity: v }))} />
-                  <p className="text-xs text-muted-foreground">{RatingLabel(form.conceptClarity)}</p>
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Concept Clarity
+                  </Label>
+                  <StarRating
+                    value={form.conceptClarity}
+                    onChange={(v) =>
+                      setForm((p) => ({ ...p, conceptClarity: v }))
+                    }
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {RatingLabel(form.conceptClarity)}
+                  </p>
                 </div>
 
                 <div className="space-y-1 pt-1">
-                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Class Participation</Label>
-                  <StarRating value={form.participation} onChange={(v) => setForm((p) => ({ ...p, participation: v }))} />
-                  <p className="text-xs text-muted-foreground">{RatingLabel(form.participation)}</p>
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Class Participation
+                  </Label>
+                  <StarRating
+                    value={form.participation}
+                    onChange={(v) =>
+                      setForm((p) => ({ ...p, participation: v }))
+                    }
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {RatingLabel(form.participation)}
+                  </p>
                 </div>
 
                 <div className="space-y-1 pt-1">
-                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Behaviour</Label>
-                  <StarRating value={form.behaviour} onChange={(v) => setForm((p) => ({ ...p, behaviour: v }))} />
-                  <p className="text-xs text-muted-foreground">{RatingLabel(form.behaviour)}</p>
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Behaviour
+                  </Label>
+                  <StarRating
+                    value={form.behaviour}
+                    onChange={(v) => setForm((p) => ({ ...p, behaviour: v }))}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {RatingLabel(form.behaviour)}
+                  </p>
                 </div>
 
                 <div className="pt-1">
-                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Homework Completion</Label>
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Homework Completion
+                  </Label>
                   <div className="flex items-center gap-3 mt-2">
                     <button
                       type="button"
-                      onClick={() => setForm((p) => ({ ...p, homeworkCompletion: true }))}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${form.homeworkCompletion
+                      onClick={() =>
+                        setForm((p) => ({ ...p, homeworkCompletion: true }))
+                      }
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
+                        form.homeworkCompletion
                           ? "border-emerald-500 text-emerald-700"
                           : "border-border text-muted-foreground hover:border-border/80"
-                        }`}
-                      style={form.homeworkCompletion ? { background: "oklch(0.93 0.07 145 / 0.3)" } : {}}
+                      }`}
+                      style={
+                        form.homeworkCompletion
+                          ? { background: "oklch(0.93 0.07 145 / 0.3)" }
+                          : {}
+                      }
                     >
                       <CheckCircle className="w-4 h-4" />
                       Yes
                     </button>
                     <button
                       type="button"
-                      onClick={() => setForm((p) => ({ ...p, homeworkCompletion: false }))}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${!form.homeworkCompletion
+                      onClick={() =>
+                        setForm((p) => ({ ...p, homeworkCompletion: false }))
+                      }
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
+                        !form.homeworkCompletion
                           ? "border-red-400 text-red-700"
                           : "border-border text-muted-foreground hover:border-border/80"
-                        }`}
-                      style={!form.homeworkCompletion ? { background: "oklch(0.97 0.02 25 / 0.5)" } : {}}
+                      }`}
+                      style={
+                        !form.homeworkCompletion
+                          ? { background: "oklch(0.97 0.02 25 / 0.5)" }
+                          : {}
+                      }
                     >
                       <XCircle className="w-4 h-4" />
                       No
@@ -215,12 +306,18 @@ export default function FeedbackPage() {
                   id="remarks"
                   placeholder="Write additional observations or comments..."
                   value={form.remarks}
-                  onChange={(e) => setForm((p) => ({ ...p, remarks: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, remarks: e.target.value }))
+                  }
                   className="min-h-[80px] resize-none"
                 />
               </div>
 
-              <Button onClick={handleSubmit} disabled={addFeedback.isPending} className="w-full">
+              <Button
+                onClick={handleSubmit}
+                disabled={addFeedback.isPending}
+                className="w-full"
+              >
                 {addFeedback.isPending ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
@@ -236,13 +333,17 @@ export default function FeedbackPage() {
         <div className="lg:col-span-3">
           <Card className="shadow-card">
             <CardHeader className="pb-2 flex-row items-center justify-between">
-              <CardTitle className="text-base font-semibold">Feedback History</CardTitle>
+              <CardTitle className="text-base font-semibold">
+                Feedback History
+              </CardTitle>
               <Badge variant="secondary">{feedbacks.length} entries</Badge>
             </CardHeader>
             <CardContent className="p-0">
               {feedbackLoading ? (
                 <div className="p-4 space-y-3">
-                  {[1, 2, 3].map((i) => <Skeleton key={i} className="h-12 w-full" />)}
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-12 w-full" />
+                  ))}
                 </div>
               ) : feedbacks.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
@@ -257,7 +358,9 @@ export default function FeedbackPage() {
                         <TableHead>Student</TableHead>
                         <TableHead>Subject</TableHead>
                         <TableHead className="text-center">Clarity</TableHead>
-                        <TableHead className="text-center">Participation</TableHead>
+                        <TableHead className="text-center">
+                          Participation
+                        </TableHead>
                         <TableHead className="text-center">Behaviour</TableHead>
                         <TableHead className="text-center">Homework</TableHead>
                         <TableHead>Remarks</TableHead>
@@ -271,21 +374,35 @@ export default function FeedbackPage() {
                             <TableCell className="font-medium">
                               {student?.name ?? `ID: ${fb.studentId}`}
                             </TableCell>
-                            <TableCell className="text-sm">{fb.subject}</TableCell>
-                            <TableCell className="text-center">
-                              <span className="font-semibold">{Number(fb.conceptClarity)}/5</span>
+                            <TableCell className="text-sm">
+                              {fb.subject}
                             </TableCell>
                             <TableCell className="text-center">
-                              <span className="font-semibold">{Number(fb.participation)}/5</span>
+                              <span className="font-semibold">
+                                {Number(fb.conceptClarity)}/5
+                              </span>
                             </TableCell>
                             <TableCell className="text-center">
-                              <span className="font-semibold">{Number(fb.behaviour)}/5</span>
+                              <span className="font-semibold">
+                                {Number(fb.participation)}/5
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <span className="font-semibold">
+                                {Number(fb.behaviour)}/5
+                              </span>
                             </TableCell>
                             <TableCell className="text-center">
                               {fb.homeworkCompletion ? (
-                                <CheckCircle className="w-4 h-4 mx-auto" style={{ color: "oklch(0.5 0.18 145)" }} />
+                                <CheckCircle
+                                  className="w-4 h-4 mx-auto"
+                                  style={{ color: "oklch(0.5 0.18 145)" }}
+                                />
                               ) : (
-                                <XCircle className="w-4 h-4 mx-auto" style={{ color: "oklch(0.5 0.22 25)" }} />
+                                <XCircle
+                                  className="w-4 h-4 mx-auto"
+                                  style={{ color: "oklch(0.5 0.22 25)" }}
+                                />
                               )}
                             </TableCell>
                             <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">

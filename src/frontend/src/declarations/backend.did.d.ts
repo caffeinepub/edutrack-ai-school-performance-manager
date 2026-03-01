@@ -15,6 +15,18 @@ export interface AdminStats {
   'totalStudents' : bigint,
   'highRiskCount' : bigint,
 }
+export interface AiPlan {
+  'id' : bigint,
+  'status' : string,
+  'basedOnExamType' : string,
+  'studentId' : bigint,
+  'aiPlanText' : string,
+  'improvementTargetPercentage' : number,
+  'planVersion' : bigint,
+  'basedOnAverage' : number,
+  'generatedDate' : Time,
+  'performanceSnapshot' : string,
+}
 export interface Feedback {
   'id' : bigint,
   'studentId' : bigint,
@@ -68,6 +80,7 @@ export interface _SERVICE {
     { 'ok' : null } |
       { 'err' : string }
   >,
+  'constructor' : ActorMethod<[], undefined>,
   'createStudent' : ActorMethod<
     [string, string, string, string, string, string],
     bigint
@@ -83,8 +96,14 @@ export interface _SERVICE {
     { 'ok' : null } |
       { 'err' : string }
   >,
+  'generateAndSaveAiPlan' : ActorMethod<
+    [string, bigint, boolean],
+    { 'ok' : AiPlan } |
+      { 'err' : string }
+  >,
   'generateImprovementPlan' : ActorMethod<[string, bigint], string>,
   'getAdminStats' : ActorMethod<[string], AdminStats>,
+  'getAiPlansByStudent' : ActorMethod<[string, bigint], Array<AiPlan>>,
   'getAllFeedback' : ActorMethod<[string], Array<Feedback>>,
   'getAllMarks' : ActorMethod<[string], Array<Mark>>,
   'getAllStudents' : ActorMethod<[string], Array<Student>>,
@@ -96,10 +115,12 @@ export interface _SERVICE {
       { 'err' : string }
   >,
   'getFeedbackByStudent' : ActorMethod<[string, bigint], Array<Feedback>>,
+  'getLatestAiPlan' : ActorMethod<[string, bigint], [] | [AiPlan]>,
   'getMarksByStudent' : ActorMethod<[string, bigint], Array<Mark>>,
   'getStudent' : ActorMethod<[string, bigint], [] | [Student]>,
   'getStudentAnalysis' : ActorMethod<[string, bigint], StudentAnalysis>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'initializeApp' : ActorMethod<[], string>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'listTeacherAccounts' : ActorMethod<
     [string],
@@ -115,6 +136,11 @@ export interface _SERVICE {
   >,
   'logout' : ActorMethod<[string], boolean>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'updateAiPlanStatus' : ActorMethod<
+    [string, bigint, string],
+    { 'ok' : null } |
+      { 'err' : string }
+  >,
   'updateStudent' : ActorMethod<
     [string, bigint, string, string, string, string, string],
     boolean

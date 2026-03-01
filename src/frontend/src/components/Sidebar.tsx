@@ -1,15 +1,16 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard,
-  Users,
-  ClipboardList,
-  MessageSquare,
   Brain,
-  FileText,
-  GraduationCap,
   ChevronLeft,
   ChevronRight,
+  ClipboardList,
+  FileText,
+  GraduationCap,
+  LayoutDashboard,
+  MessageSquare,
+  Settings,
   UserCog,
+  Users,
 } from "lucide-react";
 import { useAppContext } from "../App";
 
@@ -26,6 +27,7 @@ const adminNavItems = [
   { path: "/ai-plans", label: "AI Plans", icon: Brain },
   { path: "/reports", label: "Reports", icon: FileText },
   { path: "/manage-teachers", label: "Manage Teachers", icon: UserCog },
+  { path: "/settings", label: "Settings", icon: Settings },
 ];
 
 const teacherNavItems = [
@@ -47,17 +49,28 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
       style={{ background: "oklch(var(--sidebar))" }}
     >
       {/* Logo */}
-      <div className="flex items-center gap-3 px-4 py-5 border-b" style={{ borderColor: "oklch(var(--sidebar-border))" }}>
-        <div className="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center"
-          style={{ background: "oklch(0.55 0.18 240)" }}>
+      <div
+        className="flex items-center gap-3 px-4 py-5 border-b"
+        style={{ borderColor: "oklch(var(--sidebar-border))" }}
+      >
+        <div
+          className="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center"
+          style={{ background: "oklch(0.55 0.18 240)" }}
+        >
           <GraduationCap className="w-5 h-5 text-white" />
         </div>
         {!collapsed && (
           <div className="overflow-hidden">
-            <p className="font-bold text-sm leading-tight" style={{ color: "oklch(var(--sidebar-foreground))" }}>
+            <p
+              className="font-bold text-sm leading-tight"
+              style={{ color: "oklch(var(--sidebar-foreground))" }}
+            >
               EduTrack AI
             </p>
-            <p className="text-xs font-medium" style={{ color: "oklch(var(--sidebar-foreground) / 0.5)" }}>
+            <p
+              className="text-xs font-medium"
+              style={{ color: "oklch(var(--sidebar-foreground) / 0.5)" }}
+            >
               Performance Manager
             </p>
           </div>
@@ -66,8 +79,14 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
       {/* Role badge */}
       {!collapsed && !isLoadingRole && (
-        <div className="mx-3 mt-3 mb-1 px-3 py-1.5 rounded-lg" style={{ background: "oklch(var(--sidebar-accent))" }}>
-          <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "oklch(0.65 0.1 245)" }}>
+        <div
+          className="mx-3 mt-3 mb-1 px-3 py-1.5 rounded-lg"
+          style={{ background: "oklch(var(--sidebar-accent))" }}
+        >
+          <p
+            className="text-xs font-semibold uppercase tracking-widest"
+            style={{ color: "oklch(0.65 0.1 245)" }}
+          >
             {isAdmin ? "Administrator" : "Teacher"}
           </p>
         </div>
@@ -75,33 +94,47 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
       {/* Nav */}
       <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto">
-        {!isLoadingRole && navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = item.path === "/" ? currentPath === "/" : currentPath.startsWith(item.path);
+        {!isLoadingRole &&
+          navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive =
+              item.path === "/"
+                ? currentPath === "/"
+                : currentPath.startsWith(item.path);
 
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`sidebar-nav-item ${isActive ? "active" : ""}`}
-              title={collapsed ? item.label : undefined}
-            >
-              <Icon className="w-4.5 h-4.5 shrink-0" style={{ width: "18px", height: "18px" }} />
-              {!collapsed && <span>{item.label}</span>}
-            </Link>
-          );
-        })}
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`sidebar-nav-item ${isActive ? "active" : ""}`}
+                title={collapsed ? item.label : undefined}
+              >
+                <Icon
+                  className="w-4.5 h-4.5 shrink-0"
+                  style={{ width: "18px", height: "18px" }}
+                />
+                {!collapsed && <span>{item.label}</span>}
+              </Link>
+            );
+          })}
       </nav>
 
       {/* Collapse toggle */}
-      <div className="p-2 border-t" style={{ borderColor: "oklch(var(--sidebar-border))" }}>
+      <div
+        className="p-2 border-t"
+        style={{ borderColor: "oklch(var(--sidebar-border))" }}
+      >
         <button
           type="button"
           onClick={onToggle}
           className="w-full flex items-center justify-center p-2 rounded-lg transition-colors hover:bg-white/5"
           style={{ color: "oklch(var(--sidebar-foreground) / 0.4)" }}
         >
-          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          {collapsed ? (
+            <ChevronRight className="w-4 h-4" />
+          ) : (
+            <ChevronLeft className="w-4 h-4" />
+          )}
         </button>
       </div>
     </aside>

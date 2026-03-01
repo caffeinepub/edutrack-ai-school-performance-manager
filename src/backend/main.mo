@@ -7,16 +7,13 @@ import Text "mo:core/Text";
 import Time "mo:core/Time";
 import Int "mo:core/Int";
 import Order "mo:core/Order";
-import Runtime "mo:core/Runtime";
 import Map "mo:core/Map";
 import Principal "mo:core/Principal";
+import Runtime "mo:core/Runtime";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
 actor {
-  let accessControlState = AccessControl.initState();
-  include MixinAuthorization(accessControlState);
-
   public type UserProfile = {
     name : Text;
   };
@@ -143,9 +140,24 @@ actor {
     average : Float;
   };
 
+  // AI Plans
+  type AiPlan = {
+    id : Nat;
+    studentId : Nat;
+    planVersion : Nat;
+    generatedDate : Time.Time;
+    basedOnAverage : Float;
+    basedOnExamType : Text;
+    performanceSnapshot : Text;
+    aiPlanText : Text;
+    improvementTargetPercentage : Float;
+    status : Text;
+  };
+
   var studentIdCounter = 1;
   var markIdCounter = 1;
   var feedbackIdCounter = 1;
+  var aiPlanIdCounter = 1;
 
   // Credential system state
   let credentialUsers = Map.empty<Text, CredentialUser>();
@@ -156,7 +168,11 @@ actor {
   let students = Map.empty<Nat, Student>();
   let marks = Map.empty<Nat, Mark>();
   let feedbacks = Map.empty<Nat, Feedback>();
+  let aiPlans = Map.empty<Nat, AiPlan>();
   let userProfiles = Map.empty<Principal, UserProfile>();
+
+  var accessControlState = AccessControl.initState();
+  include MixinAuthorization(accessControlState);
 
   func repeatText(text : Text, times : Nat) : Text {
     var result = "";
@@ -266,6 +282,11 @@ actor {
     #ok;
     #err : Text;
   } {
+    // Require admin permission via AccessControl
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can create teacher accounts");
+    };
+
     switch (getUserBySessionToken(sessionToken)) {
       case (null) { #err("Invalid session token") };
       case (?session) {
@@ -293,6 +314,11 @@ actor {
     #ok;
     #err : Text;
   } {
+    // Require admin permission via AccessControl
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can delete teacher accounts");
+    };
+
     switch (getUserBySessionToken(sessionToken)) {
       case (null) { #err("Invalid session token") };
       case (?session) {
@@ -317,6 +343,11 @@ actor {
     #ok;
     #err : Text;
   } {
+    // Require user permission via AccessControl
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can change passwords");
+    };
+
     switch (getUserBySessionToken(sessionToken)) {
       case (null) { #err("Invalid session token") };
       case (?session) {
@@ -346,6 +377,11 @@ actor {
     #ok : [{ username : Text; name : Text; role : Text }];
     #err : Text;
   } {
+    // Require admin permission via AccessControl
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can view teacher accounts");
+    };
+
     switch (getUserBySessionToken(sessionToken)) {
       case (null) { #err("Invalid session token") };
       case (?session) {
@@ -367,6 +403,11 @@ actor {
     #ok : { username : Text; name : Text; role : Text };
     #err : Text;
   } {
+    // Require user permission via AccessControl
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can access user info");
+    };
+
     switch (getUserBySessionToken(sessionToken)) {
       case (null) { #err("Session not valid or expired") };
       case (?session) {
@@ -409,6 +450,11 @@ actor {
   ///////////////////////////
 
   public shared ({ caller }) func createStudent(sessionToken : Text, name : Text, rollNumber : Text, className : Text, section : Text, parentPhone : Text) : async Nat {
+    // Require user permission via AccessControl
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can create students");
+    };
+
     switch (getUserBySessionToken(sessionToken)) {
       case (null) {
         Runtime.trap("Unauthorized: Invalid session token");
@@ -431,6 +477,11 @@ actor {
   };
 
   public query ({ caller }) func getStudent(sessionToken : Text, id : Nat) : async ?Student {
+    // Require user permission via AccessControl
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view students");
+    };
+
     switch (getUserBySessionToken(sessionToken)) {
       case (null) {
         Runtime.trap("Unauthorized: Invalid session token");
@@ -441,6 +492,11 @@ actor {
   };
 
   public shared ({ caller }) func updateStudent(sessionToken : Text, id : Nat, name : Text, rollNumber : Text, className : Text, section : Text, parentPhone : Text) : async Bool {
+    // Require user permission via AccessControl
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can update students");
+    };
+
     switch (getUserBySessionToken(sessionToken)) {
       case (null) {
         Runtime.trap("Unauthorized: Invalid session token");
@@ -466,6 +522,11 @@ actor {
   };
 
   public shared ({ caller }) func deleteStudent(sessionToken : Text, id : Nat) : async Bool {
+    // Require user permission via AccessControl
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can delete students");
+    };
+
     switch (getUserBySessionToken(sessionToken)) {
       case (null) {
         Runtime.trap("Unauthorized: Invalid session token");
@@ -483,6 +544,11 @@ actor {
   };
 
   public query ({ caller }) func getAllStudents(sessionToken : Text) : async [Student] {
+    // Require user permission via AccessControl
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view students");
+    };
+
     switch (getUserBySessionToken(sessionToken)) {
       case (null) {
         Runtime.trap("Unauthorized: Invalid session token");
@@ -497,6 +563,11 @@ actor {
   ///////////////////////////
 
   public shared ({ caller }) func addMark(sessionToken : Text, studentId : Nat, subject : Text, examType : Text, marksValue : Float, maxMarks : Float) : async Nat {
+    // Require user permission via AccessControl
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can add marks");
+    };
+
     switch (getUserBySessionToken(sessionToken)) {
       case (null) {
         Runtime.trap("Unauthorized: Invalid session token");
@@ -519,6 +590,11 @@ actor {
   };
 
   public query ({ caller }) func getMarksByStudent(sessionToken : Text, studentId : Nat) : async [Mark] {
+    // Require user permission via AccessControl
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view marks");
+    };
+
     switch (getUserBySessionToken(sessionToken)) {
       case (null) {
         Runtime.trap("Unauthorized: Invalid session token");
@@ -529,6 +605,11 @@ actor {
   };
 
   public query ({ caller }) func getAllMarks(sessionToken : Text) : async [Mark] {
+    // Require user permission via AccessControl
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view marks");
+    };
+
     switch (getUserBySessionToken(sessionToken)) {
       case (null) {
         Runtime.trap("Unauthorized: Invalid session token");
@@ -543,6 +624,11 @@ actor {
   ///////////////////////////
 
   public shared ({ caller }) func addFeedback(sessionToken : Text, studentId : Nat, subject : Text, conceptClarity : Nat, homeworkCompletion : Bool, participation : Nat, behaviour : Nat, remarks : Text) : async Nat {
+    // Require user permission via AccessControl
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can add feedback");
+    };
+
     switch (getUserBySessionToken(sessionToken)) {
       case (null) {
         Runtime.trap("Unauthorized: Invalid session token");
@@ -567,6 +653,11 @@ actor {
   };
 
   public query ({ caller }) func getFeedbackByStudent(sessionToken : Text, studentId : Nat) : async [Feedback] {
+    // Require user permission via AccessControl
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view feedback");
+    };
+
     switch (getUserBySessionToken(sessionToken)) {
       case (null) {
         Runtime.trap("Unauthorized: Invalid session token");
@@ -577,6 +668,11 @@ actor {
   };
 
   public query ({ caller }) func getAllFeedback(sessionToken : Text) : async [Feedback] {
+    // Require user permission via AccessControl
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view feedback");
+    };
+
     switch (getUserBySessionToken(sessionToken)) {
       case (null) {
         Runtime.trap("Unauthorized: Invalid session token");
@@ -591,6 +687,11 @@ actor {
   ///////////////////////////
 
   public query ({ caller }) func getStudentAnalysis(sessionToken : Text, studentId : Nat) : async StudentAnalysis {
+    // Require user permission via AccessControl
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view analysis");
+    };
+
     switch (getUserBySessionToken(sessionToken)) {
       case (null) {
         Runtime.trap("Unauthorized: Invalid session token");
@@ -648,6 +749,11 @@ actor {
   };
 
   public query ({ caller }) func getAdminStats(sessionToken : Text) : async AdminStats {
+    // Require admin permission via AccessControl
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can view statistics");
+    };
+
     switch (getUserBySessionToken(sessionToken)) {
       case (null) {
         Runtime.trap("Unauthorized: Invalid session token");
@@ -711,17 +817,183 @@ actor {
     };
   };
 
-  public query ({ caller }) func generateImprovementPlan(sessionToken : Text, studentId : Nat) : async Text {
-    switch (getUserBySessionToken(sessionToken)) {
-      case (null) {
-        Runtime.trap("Unauthorized: Invalid session token");
+  ///////////////////////////
+  // AI Improved Plans
+  ///////////////////////////
+  func generatePlanText(planType : Text, subject : Text, performanceSnapshot : Text, improvementTarget : Float) : Text {
+    let base = "\n" # repeatText("=", 60) # "\n\n";
+    let goal = "GOAL: Improve " # subject # " to " # improvementTarget.toText() # "%\n";
+    let summary = "\nPERFORMANCE ANALYSIS:\n" # performanceSnapshot;
+    let basePlan = "\nBASE IMPROVEMENT PLAN:\n" # goal # summary;
+    let basicPlan = "\nBASIC STRUCTURE:\n1. Focus weak topics first\n2. Practice daily\n3. Weekly review\n4. Parent tips\n\n" # basePlan;
+
+    let unitTestPlan = "\nUNIT TEST IMPROVEMENT PLAN\n1. Prioritize chapter summaries\n2. Practice questions daily\n3. Regular reviews\n4. Parent support\n\n" # basePlan;
+
+    let halfYearlyPlan = "\nHALF YEARLY PREPARATION PLAN\n1. Comprehensive revision\n2. Regular homework+tests\n3. Class participation\n4. Parent-student teamwork\n\n" # basePlan;
+
+    let focusPlan = if (planType == "Unit Test") {
+      unitTestPlan;
+    } else if (planType == "Half Yearly") {
+      halfYearlyPlan;
+    } else { basicPlan };
+    let structure = "\nWEEKLY GUIDE (incl. daily study schedule+suggested parent checklist):\n" # focusPlan # "\nWeek 1: Master fundamentals\n\nWeek 2: Focus on weak chapters\n\nWeek 3: Practice with past papers+tests\n\nWeek 4: Intensive revision+final review\n";
+    structure # "\nSUCCESS INDICATORS:\n1. Regular homework completion\n2. Improved test scores\n3. Consistent performance\n4. Parent-teacher collaboration\n";
+  };
+
+  func fetchLatestAiPlan(studentId : Nat, examType : Text) : ?AiPlan {
+    var latestPlan : ?AiPlan = null;
+    for (plan in aiPlans.values()) {
+      if (plan.studentId == studentId and plan.basedOnExamType == examType) {
+        switch (latestPlan) {
+          case (null) {
+            latestPlan := ?plan;
+          };
+          case (?existing) {
+            if (plan.planVersion > existing.planVersion) {
+              latestPlan := ?plan;
+            };
+          };
+        };
       };
+    };
+    latestPlan;
+  };
+
+  func buildPerformanceSnapshot(student : Student, subject : Text, _marks : [Mark], _feedback : [Feedback]) : Text {
+    var snapshot = "---- STUDENT PROFILE ----\n" # "Name: " # student.name # " (Roll: " # student.rollNumber # ")\n" # "Subject: " # subject # "\n" # "Class: " # student.className # " - " # student.section # "\n\n";
+    snapshot #= repeatText("-", 60) # "\n";
+
+    let subjectMarks = _marks.filter(func(m) { m.subject == subject });
+    if (subjectMarks.size() > 0) {
+      var totalMarks : Float = 0.0;
+      var totalMax : Float = 0.0;
+      for (mark in subjectMarks.vals()) {
+        totalMarks += mark.marks;
+        totalMax += mark.maxMarks;
+      };
+
+      let average = (totalMarks / totalMax) * 100.0;
+      snapshot #= "Subject Average: " # average.toText() # "%\n";
+      snapshot #= "Highest Score: " # subjectMarks.values().foldLeft(totalMarks, func(acc, m) { if (m.marks > acc) { m.marks } else { acc } }).toText() # "\n";
+      snapshot #= "Lowest Score: " # subjectMarks.values().foldLeft(totalMarks, func(acc, m) { if (m.marks < acc) { m.marks } else { acc } }).toText() # "\n";
+    };
+
+    let subjectFeedbacks = _feedback.filter(func(f) { f.subject == subject });
+    if (subjectFeedbacks.size() > 0) {
+      var conceptTotal = 0;
+      var participationTotal = 0;
+
+      for (fb in subjectFeedbacks.vals()) {
+        conceptTotal += fb.conceptClarity;
+        participationTotal += fb.participation;
+      };
+
+      let conceptAverage = conceptTotal.toFloat() / subjectFeedbacks.size().toFloat();
+      let participationAverage = participationTotal.toFloat() / subjectFeedbacks.size().toFloat();
+
+      snapshot #= "\nFEEDBACK ANALYSIS\n";
+      snapshot #= "Concept Clarity: " # conceptAverage.toText() # " (1-5)\n";
+      snapshot #= "Participation: " # participationAverage.toText() # " (1-5)\n";
+    };
+
+    snapshot;
+  };
+
+  // Save and version AI PLAN
+  public shared ({ caller }) func generateAndSaveAiPlan(sessionToken : Text, studentId : Nat, forceRegenerate : Bool) : async {
+    #ok : AiPlan;
+    #err : Text;
+  } {
+    // Require user permission via AccessControl
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can generate AI plans");
+    };
+
+    switch (getUserBySessionToken(sessionToken)) {
+      case (null) { #err("Invalid session token") };
+      case (?_) {
+        switch (students.get(studentId)) {
+          case (null) { #err("Student not found") };
+          case (?student) {
+            let studentMarks = marks.values().toArray().filter(func(m) { m.studentId == studentId });
+            let studentFeedback = feedbacks.values().toArray().filter(func(f) { f.studentId == studentId });
+
+            if (studentMarks.size() == 0) {
+              return #err("No marks available for this student to generate improvement plan");
+            };
+
+            var summaries : [Text] = [];
+            var exams : [Text] = ["Unit Test", "Half Yearly"];
+            var averages : [Float] = [];
+            var currentSubject : Text = "";
+
+            for (examType in exams.vals()) {
+              let subjectArray = [studentMarks[0].subject];
+              for (subject in subjectArray.vals()) {
+                currentSubject := subject;
+
+                let examMarks = studentMarks.filter(func(m) { m.subject == subject and m.examType == examType });
+
+                if (examMarks.size() > 0) {
+                  var totalMarks : Float = 0.0;
+                  var totalMax : Float = 0.0;
+                  for (mark in examMarks.vals()) {
+                    totalMarks += mark.marks;
+                    totalMax += mark.maxMarks;
+                  };
+
+                  let average = (totalMarks / totalMax) * 100.0;
+                  averages := averages.concat([average]);
+
+                  let summary = "Subject: " # subject # "\nExam: " # examType # "\nAverage: " # average.toText() # "%\n";
+                  summaries := summaries.concat([summary]);
+                };
+              };
+            };
+
+            let performanceSnapshot = buildPerformanceSnapshot(student, currentSubject, studentMarks, studentFeedback);
+
+            let improvementTarget = Float.min(averages.foldLeft(0.0, func(acc, x) { acc + x }) / averages.size().toFloat() + 17.0, 95.0);
+
+            let planText = generatePlanText("Half Yearly", currentSubject, performanceSnapshot, improvementTarget);
+
+            let newPlan : AiPlan = {
+              id = aiPlanIdCounter;
+              studentId;
+              planVersion = 1;
+              generatedDate = Time.now();
+              basedOnAverage = improvementTarget;
+              basedOnExamType = "Half Yearly";
+              performanceSnapshot;
+              aiPlanText = planText;
+              improvementTargetPercentage = improvementTarget;
+              status = "Active";
+            };
+
+            aiPlans.add(aiPlanIdCounter, newPlan);
+            aiPlanIdCounter += 1;
+
+            #ok(newPlan);
+          };
+        };
+      };
+    };
+  };
+
+  public shared ({ caller }) func generateImprovementPlan(sessionToken : Text, studentId : Nat) : async Text {
+    // Require user permission via AccessControl
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can generate improvement plans");
+    };
+
+    switch (getUserBySessionToken(sessionToken)) {
+      case (null) { Runtime.trap("Unauthorized: Invalid session token") };
       case (?_) {};
     };
 
     let studentOpt = students.get(studentId);
     switch (studentOpt) {
-      case (null) { return "Student not found"; };
+      case (null) { return "Student not found" };
       case (?student) {
         let studentMarks = marks.values().toArray().filter(func(m) { m.studentId == studentId });
         let studentFeedback = feedbacks.values().toArray().filter(func(f) { f.studentId == studentId });
@@ -730,80 +1002,90 @@ actor {
           return "No marks available for this student to generate an improvement plan.";
         };
 
-        var subjectMap = Map.empty<Text, (Float, Float)>();
-        for (mark in studentMarks.vals()) {
-          switch (subjectMap.get(mark.subject)) {
-            case (null) {
-              subjectMap.add(mark.subject, (mark.marks, mark.maxMarks));
-            };
-            case (?(existingMarks, existingMax)) {
-              subjectMap.add(mark.subject, (existingMarks + mark.marks, existingMax + mark.maxMarks));
-            };
-          };
+        let unitTestPlan = switch (await generateAndSaveAiPlan(sessionToken, studentId, false)) {
+          case (#ok(aiPlan)) { aiPlan.aiPlanText };
+          case (#err(_)) { "" };
         };
-
-        var plan = "IMPROVEMENT PLAN FOR: " # student.name # " (Roll: " # student.rollNumber # ")\n";
-        plan #= "Class: " # student.className # " - " # student.section # "\n";
-        plan #= repeatText("=", 60) # "\n\n";
-
-        var weakSubjects : [Text] = [];
-        for ((subject, (totalMarks, totalMax)) in subjectMap.entries()) {
-          let subjectAverage = (totalMarks / totalMax) * 100.0;
-          if (subjectAverage < 40.0) {
-            weakSubjects := weakSubjects.concat([subject]);
-          };
-        };
-
-        if (weakSubjects.size() == 0) {
-          plan #= "Student is performing well in all subjects. Continue current study habits.\n";
-        } else {
-          plan #= "WEAK SUBJECTS IDENTIFIED:\n";
-          for (subject in weakSubjects.vals()) {
-            switch (subjectMap.get(subject)) {
-              case (?(totalMarks, totalMax)) {
-                let avg = (totalMarks / totalMax) * 100.0;
-                plan #= "- " # subject # " (Average: " # avg.toText() # "%)\n";
-              };
-              case (null) {};
-            };
-          };
-
-          plan #= "\nRECOMMENDATIONS:\n";
-          for (subject in weakSubjects.vals()) {
-            plan #= "\n" # subject # ":\n";
-            plan #= "  * Schedule extra practice sessions\n";
-            plan #= "  * Review fundamental concepts\n";
-            plan #= "  * Seek help from teachers during office hours\n";
-            plan #= "  * Form study groups with peers\n";
-
-            let subjectFeedback = studentFeedback.filter(func(f) { f.subject == subject });
-            for (fb in subjectFeedback.vals()) {
-              if (fb.conceptClarity < 3) {
-                plan #= "  * Focus on concept clarity (currently low)\n";
-              };
-              if (not fb.homeworkCompletion) {
-                plan #= "  * Ensure timely homework completion\n";
-              };
-              if (fb.participation < 3) {
-                plan #= "  * Increase class participation\n";
-              };
-              if (fb.remarks != "") {
-                plan #= "  * Teacher's note: " # fb.remarks # "\n";
-              };
-            };
-          };
-
-          plan #= "\nGENERAL RECOMMENDATIONS:\n";
-          plan #= "- Create a structured study timetable\n";
-          plan #= "- Allocate more time to weak subjects\n";
-          plan #= "- Regular practice and revision\n";
-          plan #= "- Parent involvement: Contact " # student.parentPhone # "\n";
-        };
-
-        plan #= "\n" # repeatText("=", 60) # "\n";
-        plan;
+        unitTestPlan;
       };
     };
+  };
+
+  public query ({ caller }) func getAiPlansByStudent(sessionToken : Text, studentId : Nat) : async [AiPlan] {
+    // Require user permission via AccessControl
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view AI plans");
+    };
+
+    switch (getUserBySessionToken(sessionToken)) {
+      case (null) { Runtime.trap("Unauthorized: Invalid session token") };
+      case (?_) {};
+    };
+    aiPlans.values().toArray().filter(func(plan) { plan.studentId == studentId });
+  };
+
+  public shared ({ caller }) func updateAiPlanStatus(sessionToken : Text, planId : Nat, status : Text) : async {
+    #ok;
+    #err : Text;
+  } {
+    // Require user permission via AccessControl
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can update AI plan status");
+    };
+
+    switch (getUserBySessionToken(sessionToken)) {
+      case (null) { #err("Invalid session token") };
+      case (?_) {
+        switch (aiPlans.get(planId)) {
+          case (null) { #err("Plan not found") };
+          case (?plan) {
+            let updatedPlan : AiPlan = {
+              id = planId;
+              studentId = plan.studentId;
+              planVersion = plan.planVersion;
+              generatedDate = plan.generatedDate;
+              basedOnAverage = plan.basedOnAverage;
+              basedOnExamType = plan.basedOnExamType;
+              performanceSnapshot = plan.performanceSnapshot;
+              aiPlanText = plan.aiPlanText;
+              improvementTargetPercentage = plan.improvementTargetPercentage;
+              status;
+            };
+            aiPlans.add(planId, updatedPlan);
+            #ok;
+          };
+        };
+      };
+    };
+  };
+
+  public query ({ caller }) func getLatestAiPlan(sessionToken : Text, studentId : Nat) : async ?AiPlan {
+    // Require user permission via AccessControl
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view AI plans");
+    };
+
+    switch (getUserBySessionToken(sessionToken)) {
+      case (null) { Runtime.trap("Unauthorized: Invalid session token") };
+      case (?_) {};
+    };
+
+    var latestPlan : ?AiPlan = null;
+    for (plan in aiPlans.values()) {
+      if (plan.studentId == studentId) {
+        switch (latestPlan) {
+          case (null) {
+            latestPlan := ?plan;
+          };
+          case (?existing) {
+            if (plan.planVersion > existing.planVersion) {
+              latestPlan := ?plan;
+            };
+          };
+        };
+      };
+    };
+    latestPlan;
   };
 
   ///////////////////////////
@@ -811,98 +1093,115 @@ actor {
   ///////////////////////////
 
   func seedCredentialData() {
-    let adminUser : CredentialUser = {
-      username = "admin";
-      passwordHash = hashPassword("admin123");
-      name = "Administrator";
-      role = #admin;
-      createdAt = Time.now();
+    if (credentialUsers.get("admin") == null) {
+      let adminUser : CredentialUser = {
+        username = "admin";
+        passwordHash = hashPassword("admin123");
+        name = "Administrator";
+        role = #admin;
+        createdAt = Time.now();
+      };
+      credentialUsers.add("admin", adminUser);
     };
-    credentialUsers.add("admin", adminUser);
 
-    let teacherUser1 : CredentialUser = {
-      username = "teacher1";
-      passwordHash = hashPassword("teacher123");
-      name = "John Smith";
-      role = #teacher;
-      createdAt = Time.now();
+    if (credentialUsers.get("teacher1") == null) {
+      let teacherUser1 : CredentialUser = {
+        username = "teacher1";
+        passwordHash = hashPassword("teacher123");
+        name = "John Smith";
+        role = #teacher;
+        createdAt = Time.now();
+      };
+      credentialUsers.add("teacher1", teacherUser1);
     };
-    credentialUsers.add("teacher1", teacherUser1);
 
-    let teacherUser2 : CredentialUser = {
-      username = "teacher2";
-      passwordHash = hashPassword("teacher123");
-      name = "Sarah Johnson";
-      role = #teacher;
-      createdAt = Time.now();
+    if (credentialUsers.get("teacher2") == null) {
+      let teacherUser2 : CredentialUser = {
+        username = "teacher2";
+        passwordHash = hashPassword("teacher123");
+        name = "Sarah Johnson";
+        role = #teacher;
+        createdAt = Time.now();
+      };
+      credentialUsers.add("teacher2", teacherUser2);
     };
-    credentialUsers.add("teacher2", teacherUser2);
   };
 
   func seedSchoolData() {
-    let studentNames = [
-      ("Aarav Kumar", "2024001", "10", "A", "+91-9876543210"),
-      ("Diya Sharma", "2024002", "10", "A", "+91-9876543211"),
-      ("Arjun Patel", "2024003", "10", "B", "+91-9876543212"),
-      ("Ananya Singh", "2024004", "10", "B", "+91-9876543213"),
-      ("Vihaan Reddy", "2024005", "9", "A", "+91-9876543214"),
-      ("Isha Gupta", "2024006", "9", "A", "+91-9876543215"),
-      ("Aditya Verma", "2024007", "9", "B", "+91-9876543216"),
-      ("Saanvi Joshi", "2024008", "9", "B", "+91-9876543217"),
-      ("Reyansh Mehta", "2024009", "8", "A", "+91-9876543218"),
-      ("Myra Kapoor", "2024010", "8", "A", "+91-9876543219"),
-      ("Kabir Nair", "2024011", "8", "B", "+91-9876543220"),
-      ("Kiara Desai", "2024012", "8", "B", "+91-9876543221"),
-      ("Ayaan Shah", "2024013", "7", "A", "+91-9876543222"),
-      ("Navya Iyer", "2024014", "7", "A", "+91-9876543223"),
-      ("Vivaan Rao", "2024015", "7", "B", "+91-9876543224"),
-    ];
+    if (students.size() == 0) {
+      let studentNames = [
+        ("Aarav Kumar", "2024001", "10", "A", "+91-9876543210"),
+        ("Diya Sharma", "2024002", "10", "A", "+91-9876543211"),
+        ("Arjun Patel", "2024003", "10", "B", "+91-9876543212"),
+        ("Ananya Singh", "2024004", "10", "B", "+91-9876543213"),
+        ("Vihaan Reddy", "2024005", "9", "A", "+91-9876543214"),
+        ("Isha Gupta", "2024006", "9", "A", "+91-9876543215"),
+        ("Aditya Verma", "2024007", "9", "B", "+91-9876543216"),
+        ("Saanvi Joshi", "2024008", "9", "B", "+91-9876543217"),
+        ("Reyansh Mehta", "2024009", "8", "A", "+91-9876543218"),
+        ("Myra Kapoor", "2024010", "8", "A", "+91-9876543219"),
+        ("Kabir Nair", "2024011", "8", "B", "+91-9876543220"),
+        ("Kiara Desai", "2024012", "8", "B", "+91-9876543221"),
+        ("Ayaan Shah", "2024013", "7", "A", "+91-9876543222"),
+        ("Navya Iyer", "2024014", "7", "A", "+91-9876543223"),
+        ("Vivaan Rao", "2024015", "7", "B", "+91-9876543224"),
+      ];
 
-    for ((name, roll, class_, section, phone) in studentNames.vals()) {
-      let id = studentIdCounter;
-      let student : Student = {
-        id;
-        name;
-        rollNumber = roll;
-        className = class_;
-        section;
-        parentPhone = phone;
+      for ((name, roll, class_, section, phone) in studentNames.vals()) {
+        let id = studentIdCounter;
+        let student : Student = {
+          id;
+          name;
+          rollNumber = roll;
+          className = class_;
+          section;
+          parentPhone = phone;
+        };
+        students.add(id, student);
+        studentIdCounter += 1;
       };
-      students.add(id, student);
-      studentIdCounter += 1;
-    };
 
-    let subjects = ["Mathematics", "Science", "English", "Social Studies", "Hindi", "Computer Science"];
-    let examTypes = ["Unit Test", "Half Yearly"];
+      let subjects = ["Mathematics", "Science", "English", "Social Studies", "Hindi", "Computer Science"];
+      let examTypes = ["Unit Test", "Half Yearly"];
 
-    for (studentId in Nat.range(1, 15)) {
-      for (subject in subjects.vals()) {
-        for (examType in examTypes.vals()) {
-          let id = markIdCounter;
-          let marksValue = if (studentId <= 3 and (subject == "Mathematics" or subject == "Science")) {
-            30.0 + (studentId * 2).toFloat();
-          } else if (studentId >= 13 and subject == "English") {
-            35.0 + studentId.toFloat();
-          } else {
-            50.0 + ((studentId * 3 + markIdCounter) % 45).toFloat();
+      for (studentId in Nat.range(1, 15)) {
+        for (subject in subjects.vals()) {
+          for (examType in examTypes.vals()) {
+            let id = markIdCounter;
+            let marksValue = if (studentId <= 3 and (subject == "Mathematics" or subject == "Science")) {
+              30.0 + (studentId * 2).toFloat();
+            } else if (studentId >= 13 and subject == "English") {
+              35.0 + studentId.toFloat();
+            } else {
+              50.0 + ((studentId * 3 + markIdCounter) % 45).toFloat();
+            };
+
+            let mark : Mark = {
+              id;
+              studentId;
+              subject;
+              examType;
+              marks = marksValue;
+              maxMarks = 100.0;
+            };
+            marks.add(id, mark);
+            markIdCounter += 1;
           };
-
-          let mark : Mark = {
-            id;
-            studentId;
-            subject;
-            examType;
-            marks = marksValue;
-            maxMarks = 100.0;
-          };
-          marks.add(id, mark);
-          markIdCounter += 1;
         };
       };
     };
   };
 
-  system func postupgrade() {
+  public shared ({ caller }) func initializeApp() : async Text {
+    // This function is intentionally accessible to anyone (including anonymous)
+    // because it's designed to be called by the frontend on startup
+    // and the seed functions are idempotent (safe to call multiple times)
+    seedCredentialData();
+    seedSchoolData();
+    "initialized";
+  };
+
+  public func constructor() {
     seedCredentialData();
     seedSchoolData();
   };

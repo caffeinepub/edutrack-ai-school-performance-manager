@@ -14,6 +14,18 @@ export interface StudentAnalysis {
     weakSubjects: Array<string>;
 }
 export type Time = bigint;
+export interface AiPlan {
+    id: bigint;
+    status: string;
+    basedOnExamType: string;
+    studentId: bigint;
+    aiPlanText: string;
+    improvementTargetPercentage: number;
+    planVersion: bigint;
+    basedOnAverage: number;
+    generatedDate: Time;
+    performanceSnapshot: string;
+}
 export interface AdminStats {
     weakCount: bigint;
     totalStudents: bigint;
@@ -80,8 +92,16 @@ export interface backendInterface {
         __kind__: "err";
         err: string;
     }>;
+    generateAndSaveAiPlan(sessionToken: string, studentId: bigint, forceRegenerate: boolean): Promise<{
+        __kind__: "ok";
+        ok: AiPlan;
+    } | {
+        __kind__: "err";
+        err: string;
+    }>;
     generateImprovementPlan(sessionToken: string, studentId: bigint): Promise<string>;
     getAdminStats(sessionToken: string): Promise<AdminStats>;
+    getAiPlansByStudent(sessionToken: string, studentId: bigint): Promise<Array<AiPlan>>;
     getAllFeedback(sessionToken: string): Promise<Array<Feedback>>;
     getAllMarks(sessionToken: string): Promise<Array<Mark>>;
     getAllStudents(sessionToken: string): Promise<Array<Student>>;
@@ -99,10 +119,12 @@ export interface backendInterface {
         err: string;
     }>;
     getFeedbackByStudent(sessionToken: string, studentId: bigint): Promise<Array<Feedback>>;
+    getLatestAiPlan(sessionToken: string, studentId: bigint): Promise<AiPlan | null>;
     getMarksByStudent(sessionToken: string, studentId: bigint): Promise<Array<Mark>>;
     getStudent(sessionToken: string, id: bigint): Promise<Student | null>;
     getStudentAnalysis(sessionToken: string, studentId: bigint): Promise<StudentAnalysis>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
+    initializeApp(): Promise<string>;
     isCallerAdmin(): Promise<boolean>;
     listTeacherAccounts(sessionToken: string): Promise<{
         __kind__: "ok";
@@ -128,6 +150,13 @@ export interface backendInterface {
     }>;
     logout(token: string): Promise<boolean>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    updateAiPlanStatus(sessionToken: string, planId: bigint, status: string): Promise<{
+        __kind__: "ok";
+        ok: null;
+    } | {
+        __kind__: "err";
+        err: string;
+    }>;
     updateStudent(sessionToken: string, id: bigint, name: string, rollNumber: string, className: string, section: string, parentPhone: string): Promise<boolean>;
     validateSession(token: string): Promise<{
         username: string;

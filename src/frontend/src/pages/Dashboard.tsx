@@ -1,9 +1,5 @@
-import { useEffect, useRef, useState, useMemo } from "react";
-import { useAdminStats, useAllStudents, useAllMarks } from "../hooks/useQueries";
-import { useAppContext } from "../App";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -11,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -19,8 +16,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Users, TrendingDown, AlertTriangle, BookOpen, Filter, ChevronRight } from "lucide-react";
+import {
+  AlertTriangle,
+  BookOpen,
+  ChevronRight,
+  Filter,
+  TrendingDown,
+  Users,
+} from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useAppContext } from "../App";
 import type { Mark, Student } from "../backend.d";
+import {
+  useAdminStats,
+  useAllMarks,
+  useAllStudents,
+} from "../hooks/useQueries";
 
 declare const Chart: any;
 
@@ -41,7 +52,9 @@ function StatsCard({
     <div className="stat-card shadow-card hover:shadow-card-hover transition-shadow">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">{title}</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+            {title}
+          </p>
           {loading ? (
             <Skeleton className="h-8 w-16 mt-1" />
           ) : (
@@ -50,7 +63,7 @@ function StatsCard({
         </div>
         <div
           className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-          style={{ background: color + "20" }}
+          style={{ background: `${color}20` }}
         >
           <Icon className="w-5 h-5" style={{ color }} />
         </div>
@@ -59,9 +72,20 @@ function StatsCard({
   );
 }
 
-function computeSubjectAverages(marks: Mark[]): { labels: string[]; data: number[] } {
-  const subjects = ["Mathematics", "Science", "English", "Social Science", "Hindi", "Computer"];
-  const totals: Record<string, { sum: number; max: number; count: number }> = {};
+function computeSubjectAverages(marks: Mark[]): {
+  labels: string[];
+  data: number[];
+} {
+  const subjects = [
+    "Mathematics",
+    "Science",
+    "English",
+    "Social Science",
+    "Hindi",
+    "Computer",
+  ];
+  const totals: Record<string, { sum: number; max: number; count: number }> =
+    {};
   for (const subject of subjects) {
     totals[subject] = { sum: 0, max: 0, count: 0 };
   }
@@ -77,7 +101,12 @@ function computeSubjectAverages(marks: Mark[]): { labels: string[]; data: number
   for (const subject of subjects) {
     const t = totals[subject];
     if (t.count > 0) {
-      labels.push(subject.replace(" Science", " Sci.").replace("Social", "Soc.").replace("Mathematics", "Math"));
+      labels.push(
+        subject
+          .replace(" Science", " Sci.")
+          .replace("Social", "Soc.")
+          .replace("Mathematics", "Math"),
+      );
       data.push(Math.round((t.sum / t.max) * 100));
     }
   }
@@ -118,26 +147,30 @@ function computeWeakStudents(students: Student[], marks: Mark[]) {
   });
 }
 
-function getRiskColor(riskPct: number): { bg: string; text: string; border: string } {
+function getRiskColor(riskPct: number): {
+  bg: string;
+  text: string;
+  border: string;
+} {
   if (riskPct < 20) {
     return {
       bg: "oklch(0.93 0.07 145 / 0.25)",
       text: "oklch(0.35 0.16 145)",
       border: "oklch(0.7 0.1 145 / 0.35)",
     };
-  } else if (riskPct <= 50) {
+  }
+  if (riskPct <= 50) {
     return {
       bg: "oklch(0.95 0.08 65 / 0.3)",
       text: "oklch(0.48 0.17 65)",
       border: "oklch(0.75 0.12 65 / 0.4)",
     };
-  } else {
-    return {
-      bg: "oklch(0.97 0.05 25 / 0.35)",
-      text: "oklch(0.5 0.22 25)",
-      border: "oklch(0.78 0.1 25 / 0.4)",
-    };
   }
+  return {
+    bg: "oklch(0.97 0.05 25 / 0.35)",
+    text: "oklch(0.5 0.22 25)",
+    border: "oklch(0.78 0.1 25 / 0.4)",
+  };
 }
 
 interface ClassBreakdownRow {
@@ -168,16 +201,19 @@ export default function Dashboard() {
   const availableClasses = useMemo(() => {
     const classSet = new Set(students.map((s) => s.className));
     return Array.from(classSet).sort((a, b) => {
-      const numA = parseInt(a.replace(/\D/g, ""), 10);
-      const numB = parseInt(b.replace(/\D/g, ""), 10);
-      if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+      const numA = Number.parseInt(a.replace(/\D/g, ""), 10);
+      const numB = Number.parseInt(b.replace(/\D/g, ""), 10);
+      if (!Number.isNaN(numA) && !Number.isNaN(numB)) return numA - numB;
       return a.localeCompare(b);
     });
   }, [students]);
 
   // Derive sections available for the selected class
   const availableSections = useMemo(() => {
-    const base = selectedClass === "all" ? students : students.filter((s) => s.className === selectedClass);
+    const base =
+      selectedClass === "all"
+        ? students
+        : students.filter((s) => s.className === selectedClass);
     const sectionSet = new Set(base.map((s) => s.section));
     return Array.from(sectionSet).sort();
   }, [students, selectedClass]);
@@ -191,8 +227,10 @@ export default function Dashboard() {
   // Filtered students based on dropdowns
   const filteredStudents = useMemo(() => {
     return students.filter((s) => {
-      const classMatch = selectedClass === "all" || s.className === selectedClass;
-      const sectionMatch = selectedSection === "all" || s.section === selectedSection;
+      const classMatch =
+        selectedClass === "all" || s.className === selectedClass;
+      const sectionMatch =
+        selectedSection === "all" || s.section === selectedSection;
       return classMatch && sectionMatch;
     });
   }, [students, selectedClass, selectedSection]);
@@ -200,24 +238,24 @@ export default function Dashboard() {
   // Build a Set of filtered student IDs for fast lookup
   const filteredStudentIds = useMemo(
     () => new Set(filteredStudents.map((s) => s.id.toString())),
-    [filteredStudents]
+    [filteredStudents],
   );
 
   // Filter marks to only those belonging to filtered students
   const filteredMarks = useMemo(
     () => marks.filter((m) => filteredStudentIds.has(m.studentId.toString())),
-    [marks, filteredStudentIds]
+    [marks, filteredStudentIds],
   );
 
   // Computed stats from filtered data
   const filteredHighRiskStudents = useMemo(
     () => computeHighRiskStudents(filteredStudents, filteredMarks),
-    [filteredStudents, filteredMarks]
+    [filteredStudents, filteredMarks],
   );
 
   const filteredWeakCount = useMemo(
     () => computeWeakStudents(filteredStudents, filteredMarks).length,
-    [filteredStudents, filteredMarks]
+    [filteredStudents, filteredMarks],
   );
 
   const isFiltered = selectedClass !== "all" || selectedSection !== "all";
@@ -227,10 +265,10 @@ export default function Dashboard() {
     const rowMap: Record<string, ClassBreakdownRow> = {};
     for (const s of students) {
       if (!rowMap[s.className]) {
-        const classNum = parseInt(s.className.replace(/\D/g, ""), 10);
+        const classNum = Number.parseInt(s.className.replace(/\D/g, ""), 10);
         rowMap[s.className] = {
           className: s.className,
-          classNum: isNaN(classNum) ? 999 : classNum,
+          classNum: Number.isNaN(classNum) ? 999 : classNum,
           sections: [],
           total: 0,
           weak: 0,
@@ -265,7 +303,8 @@ export default function Dashboard() {
       .map((row) => ({
         ...row,
         sections: row.sections.sort(),
-        riskPct: row.total > 0 ? Math.round((row.highRisk / row.total) * 100) : 0,
+        riskPct:
+          row.total > 0 ? Math.round((row.highRisk / row.total) * 100) : 0,
       }))
       .sort((a, b) => a.classNum - b.classNum);
   }, [students, marks]);
@@ -291,7 +330,7 @@ export default function Dashboard() {
         ? "oklch(0.55 0.18 145)"
         : v >= 40
           ? "oklch(0.65 0.2 65)"
-          : "oklch(0.577 0.245 27)"
+          : "oklch(0.577 0.245 27)",
     );
 
     chartInstance.current = new Chart(chartRef.current, {
@@ -343,10 +382,24 @@ export default function Dashboard() {
   }, [filteredMarks]);
 
   // Determine which stats values to show
-  const displayTotal = isFiltered ? filteredStudents.length : (stats ? Number(stats.totalStudents) : 0);
-  const displayWeak = isFiltered ? filteredWeakCount : (stats ? Number(stats.weakCount) : 0);
-  const displayHighRisk = isFiltered ? filteredHighRiskStudents.length : (stats ? Number(stats.highRiskCount) : 0);
-  const statsIsLoading = isFiltered ? (studentsLoading || marksLoading) : statsLoading;
+  const displayTotal = isFiltered
+    ? filteredStudents.length
+    : stats
+      ? Number(stats.totalStudents)
+      : 0;
+  const displayWeak = isFiltered
+    ? filteredWeakCount
+    : stats
+      ? Number(stats.weakCount)
+      : 0;
+  const displayHighRisk = isFiltered
+    ? filteredHighRiskStudents.length
+    : stats
+      ? Number(stats.highRiskCount)
+      : 0;
+  const statsIsLoading = isFiltered
+    ? studentsLoading || marksLoading
+    : statsLoading;
   const hasFilteredMarksData = filteredMarks.length > 0;
 
   return (
@@ -375,7 +428,9 @@ export default function Dashboard() {
             <SelectContent>
               <SelectItem value="all">All Classes</SelectItem>
               {availableClasses.map((c) => (
-                <SelectItem key={c} value={c}>{c}</SelectItem>
+                <SelectItem key={c} value={c}>
+                  {c}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -391,7 +446,9 @@ export default function Dashboard() {
             <SelectContent>
               <SelectItem value="all">All Sections</SelectItem>
               {availableSections.map((sec) => (
-                <SelectItem key={sec} value={sec}>Section {sec}</SelectItem>
+                <SelectItem key={sec} value={sec}>
+                  Section {sec}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -399,7 +456,10 @@ export default function Dashboard() {
           {isFiltered && (
             <button
               type="button"
-              onClick={() => { setSelectedClass("all"); setSelectedSection("all"); }}
+              onClick={() => {
+                setSelectedClass("all");
+                setSelectedSection("all");
+              }}
               className="text-xs font-medium px-3 py-1.5 rounded-lg border border-border hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
             >
               Clear filters
@@ -408,18 +468,21 @@ export default function Dashboard() {
         </div>
 
         {isFiltered && (
-          <div className="flex items-center gap-1.5 text-xs font-medium ml-auto"
-            style={{ color: "oklch(0.475 0.175 255)" }}>
+          <div
+            className="flex items-center gap-1.5 text-xs font-medium ml-auto"
+            style={{ color: "oklch(0.475 0.175 255)" }}
+          >
             <span>
               {selectedClass !== "all" && selectedSection !== "all"
                 ? `${selectedClass} — Section ${selectedSection}`
                 : selectedClass !== "all"
                   ? selectedClass
-                  : `Section ${selectedSection}`
-              }
+                  : `Section ${selectedSection}`}
             </span>
             <span className="text-muted-foreground">·</span>
-            <span className="text-muted-foreground">{filteredStudents.length} students</span>
+            <span className="text-muted-foreground">
+              {filteredStudents.length} students
+            </span>
           </div>
         )}
       </div>
@@ -458,7 +521,10 @@ export default function Dashboard() {
               <BookOpen className="w-4 h-4 text-primary" />
               Subject-wise Averages
               {isFiltered && (
-                <Badge variant="secondary" className="ml-auto text-xs font-medium">
+                <Badge
+                  variant="secondary"
+                  className="ml-auto text-xs font-medium"
+                >
                   Filtered
                 </Badge>
               )}
@@ -486,7 +552,10 @@ export default function Dashboard() {
         <Card className="lg:col-span-2 shadow-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4" style={{ color: "oklch(0.577 0.245 27)" }} />
+              <AlertTriangle
+                className="w-4 h-4"
+                style={{ color: "oklch(0.577 0.245 27)" }}
+              />
               High Risk Students
             </CardTitle>
           </CardHeader>
@@ -499,8 +568,14 @@ export default function Dashboard() {
               </div>
             ) : filteredHighRiskStudents.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground gap-2">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: "oklch(0.93 0.07 145 / 0.4)" }}>
-                  <Users className="w-5 h-5" style={{ color: "oklch(0.4 0.18 145)" }} />
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center"
+                  style={{ background: "oklch(0.93 0.07 145 / 0.4)" }}
+                >
+                  <Users
+                    className="w-5 h-5"
+                    style={{ color: "oklch(0.4 0.18 145)" }}
+                  />
                 </div>
                 <p className="text-sm font-medium">No high risk students!</p>
               </div>
@@ -513,8 +588,12 @@ export default function Dashboard() {
                     style={{ background: "oklch(0.97 0.02 25)" }}
                   >
                     <div>
-                      <p className="text-sm font-semibold text-foreground leading-none">{s.name}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">{s.className} — Section {s.section}</p>
+                      <p className="text-sm font-semibold text-foreground leading-none">
+                        {s.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {s.className} — Section {s.section}
+                      </p>
                     </div>
                     <span className="badge-high-risk">{s.avg}%</span>
                   </div>
@@ -540,7 +619,9 @@ export default function Dashboard() {
           <CardContent className="p-0">
             {studentsLoading ? (
               <div className="p-4 space-y-3">
-                {[1, 2, 3].map((i) => <Skeleton key={i} className="h-10 w-full" />)}
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-10 w-full" />
+                ))}
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -564,7 +645,11 @@ export default function Dashboard() {
                         <TableRow
                           key={row.className}
                           className="cursor-pointer hover:bg-accent/50 transition-colors"
-                          style={isRowSelected ? { background: "oklch(0.475 0.175 255 / 0.06)" } : {}}
+                          style={
+                            isRowSelected
+                              ? { background: "oklch(0.475 0.175 255 / 0.06)" }
+                              : {}
+                          }
                           onClick={() => {
                             if (isRowSelected) {
                               setSelectedClass("all");
@@ -575,7 +660,9 @@ export default function Dashboard() {
                           }}
                         >
                           <TableCell>
-                            <span className="font-semibold text-foreground">{row.className}</span>
+                            <span className="font-semibold text-foreground">
+                              {row.className}
+                            </span>
                             {isRowSelected && (
                               <Badge
                                 variant="outline"
@@ -603,14 +690,30 @@ export default function Dashboard() {
                               ))}
                             </div>
                           </TableCell>
-                          <TableCell className="text-right font-medium">{row.total}</TableCell>
+                          <TableCell className="text-right font-medium">
+                            {row.total}
+                          </TableCell>
                           <TableCell className="text-right">
-                            <span style={{ color: row.weak > 0 ? "oklch(0.48 0.17 65)" : "oklch(0.5 0.05 240)" }}>
+                            <span
+                              style={{
+                                color:
+                                  row.weak > 0
+                                    ? "oklch(0.48 0.17 65)"
+                                    : "oklch(0.5 0.05 240)",
+                              }}
+                            >
                               {row.weak}
                             </span>
                           </TableCell>
                           <TableCell className="text-right">
-                            <span style={{ color: row.highRisk > 0 ? "oklch(0.5 0.22 25)" : "oklch(0.5 0.05 240)" }}>
+                            <span
+                              style={{
+                                color:
+                                  row.highRisk > 0
+                                    ? "oklch(0.5 0.22 25)"
+                                    : "oklch(0.5 0.05 240)",
+                              }}
+                            >
                               {row.highRisk}
                             </span>
                           </TableCell>
@@ -672,10 +775,15 @@ export default function Dashboard() {
                 {filteredHighRiskStudents.map((s) => (
                   <TableRow key={s.id.toString()}>
                     <TableCell className="font-medium">{s.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{s.rollNumber}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {s.rollNumber}
+                    </TableCell>
                     <TableCell>{s.className}</TableCell>
                     <TableCell>{s.section}</TableCell>
-                    <TableCell className="text-right font-semibold" style={{ color: "oklch(0.5 0.22 25)" }}>
+                    <TableCell
+                      className="text-right font-semibold"
+                      style={{ color: "oklch(0.5 0.22 25)" }}
+                    >
                       {s.avg}%
                     </TableCell>
                     <TableCell className="text-right">

@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -47,19 +45,50 @@
     --sidebar-ring: 0.55 0.18 240;
   }
 
+  .dark {
+    --background: 0.13 0.02 265;
+    --foreground: 0.92 0.015 255;
+    --card: 0.18 0.03 265;
+    --card-foreground: 0.92 0.015 255;
+    --popover: 0.18 0.03 265;
+    --popover-foreground: 0.92 0.015 255;
+    --primary: 0.55 0.18 255;
+    --primary-foreground: 0.99 0 0;
+    --secondary: 0.22 0.04 265;
+    --secondary-foreground: 0.85 0.02 255;
+    --muted: 0.22 0.03 265;
+    --muted-foreground: 0.6 0.04 255;
+    --accent: 0.25 0.05 265;
+    --accent-foreground: 0.9 0.02 255;
+    --destructive: 0.577 0.245 27.325;
+    --destructive-foreground: 0.985 0 0;
+    --border: 0.28 0.04 265;
+    --input: 0.28 0.04 265;
+    --ring: 0.55 0.18 255;
+    --sidebar: 0.10 0.02 270;
+    --sidebar-foreground: 0.88 0.015 255;
+    --sidebar-primary: 0.55 0.18 255;
+    --sidebar-primary-foreground: 0.99 0 0;
+    --sidebar-accent: 0.17 0.035 270;
+    --sidebar-accent-foreground: 0.95 0.01 255;
+    --sidebar-border: 0.20 0.03 270;
+    --sidebar-ring: 0.55 0.18 255;
+    color-scheme: dark;
+  }
+
   * {
     @apply border-border;
   }
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     -webkit-font-smoothing: antialiased;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
     letter-spacing: -0.02em;
   }
 }

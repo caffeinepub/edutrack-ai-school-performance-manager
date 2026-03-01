@@ -1,7 +1,14 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useActor } from "./useActor";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type {
+  AdminStats,
+  Feedback,
+  Mark,
+  Student,
+  StudentAnalysis,
+  UserProfile,
+} from "../backend.d";
 import { useAuth } from "../context/AuthContext";
-import type { Student, Mark, Feedback, AdminStats, StudentAnalysis, UserProfile } from "../backend.d";
+import { useActor } from "./useActor";
 
 // ---- Students ----
 
@@ -24,10 +31,23 @@ export function useCreateStudent() {
   const { session } = useAuth();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (params: { name: string; rollNumber: string; className: string; section: string; parentPhone: string }) => {
+    mutationFn: async (params: {
+      name: string;
+      rollNumber: string;
+      className: string;
+      section: string;
+      parentPhone: string;
+    }) => {
       if (!actor) throw new Error("Not authenticated");
       const token = session?.token ?? "";
-      return actor.createStudent(token, params.name, params.rollNumber, params.className, params.section, params.parentPhone);
+      return actor.createStudent(
+        token,
+        params.name,
+        params.rollNumber,
+        params.className,
+        params.section,
+        params.parentPhone,
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["students"] });
@@ -41,10 +61,25 @@ export function useUpdateStudent() {
   const { session } = useAuth();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (params: { id: bigint; name: string; rollNumber: string; className: string; section: string; parentPhone: string }) => {
+    mutationFn: async (params: {
+      id: bigint;
+      name: string;
+      rollNumber: string;
+      className: string;
+      section: string;
+      parentPhone: string;
+    }) => {
       if (!actor) throw new Error("Not authenticated");
       const token = session?.token ?? "";
-      return actor.updateStudent(token, params.id, params.name, params.rollNumber, params.className, params.section, params.parentPhone);
+      return actor.updateStudent(
+        token,
+        params.id,
+        params.name,
+        params.rollNumber,
+        params.className,
+        params.section,
+        params.parentPhone,
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["students"] });
@@ -104,10 +139,23 @@ export function useAddMark() {
   const { session } = useAuth();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (params: { studentId: bigint; subject: string; examType: string; marks: number; maxMarks: number }) => {
+    mutationFn: async (params: {
+      studentId: bigint;
+      subject: string;
+      examType: string;
+      marks: number;
+      maxMarks: number;
+    }) => {
       if (!actor) throw new Error("Not authenticated");
       const token = session?.token ?? "";
-      return actor.addMark(token, params.studentId, params.subject, params.examType, params.marks, params.maxMarks);
+      return actor.addMark(
+        token,
+        params.studentId,
+        params.subject,
+        params.examType,
+        params.marks,
+        params.maxMarks,
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["marks"] });
@@ -151,10 +199,27 @@ export function useAddFeedback() {
   const { session } = useAuth();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (params: { studentId: bigint; subject: string; conceptClarity: bigint; homeworkCompletion: boolean; participation: bigint; behaviour: bigint; remarks: string }) => {
+    mutationFn: async (params: {
+      studentId: bigint;
+      subject: string;
+      conceptClarity: bigint;
+      homeworkCompletion: boolean;
+      participation: bigint;
+      behaviour: bigint;
+      remarks: string;
+    }) => {
       if (!actor) throw new Error("Not authenticated");
       const token = session?.token ?? "";
-      return actor.addFeedback(token, params.studentId, params.subject, params.conceptClarity, params.homeworkCompletion, params.participation, params.behaviour, params.remarks);
+      return actor.addFeedback(
+        token,
+        params.studentId,
+        params.subject,
+        params.conceptClarity,
+        params.homeworkCompletion,
+        params.participation,
+        params.behaviour,
+        params.remarks,
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["feedback"] });
@@ -171,7 +236,8 @@ export function useAdminStats() {
   return useQuery<AdminStats>({
     queryKey: ["adminStats"],
     queryFn: async () => {
-      if (!actor) return { weakCount: 0n, totalStudents: 0n, highRiskCount: 0n };
+      if (!actor)
+        return { weakCount: 0n, totalStudents: 0n, highRiskCount: 0n };
       return actor.getAdminStats(token);
     },
     enabled: !!actor && !actorFetching && !!token,

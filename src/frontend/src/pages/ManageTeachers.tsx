@@ -1,21 +1,3 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useActor } from "../hooks/useActor";
-import { useAuth } from "../context/AuthContext";
-import { toast } from "sonner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +8,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -34,7 +29,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { UserCog, Plus, Trash2, Loader2, Eye, EyeOff, Users, ShieldCheck } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  Eye,
+  EyeOff,
+  Loader2,
+  Plus,
+  ShieldCheck,
+  Trash2,
+  UserCog,
+  Users,
+} from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useAuth } from "../context/AuthContext";
+import { useActor } from "../hooks/useActor";
 
 interface TeacherAccount {
   username: string;
@@ -74,9 +83,18 @@ function useCreateTeacher(token: string) {
   const { actor } = useActor();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (params: { username: string; password: string; name: string }) => {
+    mutationFn: async (params: {
+      username: string;
+      password: string;
+      name: string;
+    }) => {
       if (!actor) throw new Error("Actor not available");
-      const result = await actor.createTeacherAccount(token, params.username, params.password, params.name);
+      const result = await actor.createTeacherAccount(
+        token,
+        params.username,
+        params.password,
+        params.name,
+      );
       if (result.__kind__ === "err") throw new Error(result.err);
     },
     onSuccess: () => {
@@ -147,7 +165,9 @@ export default function ManageTeachers() {
       setAddDialogOpen(false);
       setForm(emptyForm);
     } catch (e) {
-      setFormError(e instanceof Error ? e.message : "Failed to create teacher account");
+      setFormError(
+        e instanceof Error ? e.message : "Failed to create teacher account",
+      );
     }
   };
 
@@ -188,7 +208,9 @@ export default function ManageTeachers() {
         <div className="stat-card shadow-card">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Total Teachers</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                Total Teachers
+              </p>
               {isLoading ? (
                 <Skeleton className="h-8 w-12 mt-1" />
               ) : (
@@ -197,16 +219,23 @@ export default function ManageTeachers() {
                 </p>
               )}
             </div>
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-              style={{ background: "oklch(0.475 0.175 255 / 0.12)" }}>
-              <Users className="w-5 h-5" style={{ color: "oklch(0.475 0.175 255)" }} />
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+              style={{ background: "oklch(0.475 0.175 255 / 0.12)" }}
+            >
+              <Users
+                className="w-5 h-5"
+                style={{ color: "oklch(0.475 0.175 255)" }}
+              />
             </div>
           </div>
         </div>
         <div className="stat-card shadow-card">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Admin Accounts</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                Admin Accounts
+              </p>
               {isLoading ? (
                 <Skeleton className="h-8 w-12 mt-1" />
               ) : (
@@ -215,9 +244,14 @@ export default function ManageTeachers() {
                 </p>
               )}
             </div>
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-              style={{ background: "oklch(0.55 0.18 145 / 0.12)" }}>
-              <ShieldCheck className="w-5 h-5" style={{ color: "oklch(0.45 0.18 145)" }} />
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+              style={{ background: "oklch(0.55 0.18 145 / 0.12)" }}
+            >
+              <ShieldCheck
+                className="w-5 h-5"
+                style={{ color: "oklch(0.45 0.18 145)" }}
+              />
             </div>
           </div>
         </div>
@@ -230,21 +264,30 @@ export default function ManageTeachers() {
             <UserCog className="w-4 h-4 text-primary" />
             Teacher Accounts
           </CardTitle>
-          {!isLoading && <Badge variant="secondary">{teachers.length} accounts</Badge>}
+          {!isLoading && (
+            <Badge variant="secondary">{teachers.length} accounts</Badge>
+          )}
         </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-4 space-y-3">
-              {[1, 2, 3].map((i) => <Skeleton key={i} className="h-12 w-full" />)}
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
             </div>
           ) : teachers.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "oklch(0.94 0.02 240)" }}>
+              <div
+                className="w-12 h-12 rounded-full flex items-center justify-center"
+                style={{ background: "oklch(0.94 0.02 240)" }}
+              >
                 <Users className="w-6 h-6 opacity-40" />
               </div>
               <div className="text-center">
                 <p className="font-medium text-sm">No teacher accounts yet</p>
-                <p className="text-xs mt-0.5">Click "Add Teacher" to create the first teacher account</p>
+                <p className="text-xs mt-0.5">
+                  Click "Add Teacher" to create the first teacher account
+                </p>
               </div>
             </div>
           ) : (
@@ -261,23 +304,33 @@ export default function ManageTeachers() {
                 <TableBody>
                   {teachers.map((teacher) => (
                     <TableRow key={teacher.username}>
-                      <TableCell className="font-medium">{teacher.name}</TableCell>
-                      <TableCell className="text-muted-foreground font-mono text-sm">{teacher.username}</TableCell>
+                      <TableCell className="font-medium">
+                        {teacher.name}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground font-mono text-sm">
+                        {teacher.username}
+                      </TableCell>
                       <TableCell>
                         <Badge
                           variant="outline"
                           className="font-medium capitalize"
-                          style={teacher.role === "admin" ? {
-                            background: "oklch(0.93 0.07 145 / 0.3)",
-                            color: "oklch(0.35 0.15 145)",
-                            borderColor: "oklch(0.7 0.1 145 / 0.4)",
-                          } : {
-                            background: "oklch(0.94 0.03 240)",
-                            color: "oklch(0.4 0.1 255)",
-                            borderColor: "oklch(0.8 0.06 240)",
-                          }}
+                          style={
+                            teacher.role === "admin"
+                              ? {
+                                  background: "oklch(0.93 0.07 145 / 0.3)",
+                                  color: "oklch(0.35 0.15 145)",
+                                  borderColor: "oklch(0.7 0.1 145 / 0.4)",
+                                }
+                              : {
+                                  background: "oklch(0.94 0.03 240)",
+                                  color: "oklch(0.4 0.1 255)",
+                                  borderColor: "oklch(0.8 0.06 240)",
+                                }
+                          }
                         >
-                          {teacher.role === "admin" ? "Administrator" : "Teacher"}
+                          {teacher.role === "admin"
+                            ? "Administrator"
+                            : "Teacher"}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -292,7 +345,9 @@ export default function ManageTeachers() {
                           </Button>
                         )}
                         {teacher.role === "admin" && (
-                          <span className="text-xs text-muted-foreground pr-2">Protected</span>
+                          <span className="text-xs text-muted-foreground pr-2">
+                            Protected
+                          </span>
                         )}
                       </TableCell>
                     </TableRow>
@@ -315,35 +370,50 @@ export default function ManageTeachers() {
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label htmlFor="teacher-name">Full Name <span className="text-destructive">*</span></Label>
+              <Label htmlFor="teacher-name">
+                Full Name <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="teacher-name"
                 placeholder="e.g. Priya Sharma"
                 value={form.name}
-                onChange={(e) => { setForm((p) => ({ ...p, name: e.target.value })); setFormError(null); }}
+                onChange={(e) => {
+                  setForm((p) => ({ ...p, name: e.target.value }));
+                  setFormError(null);
+                }}
                 disabled={createMutation.isPending}
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="teacher-username">Username <span className="text-destructive">*</span></Label>
+              <Label htmlFor="teacher-username">
+                Username <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="teacher-username"
                 placeholder="e.g. teacher2"
                 value={form.username}
-                onChange={(e) => { setForm((p) => ({ ...p, username: e.target.value })); setFormError(null); }}
+                onChange={(e) => {
+                  setForm((p) => ({ ...p, username: e.target.value }));
+                  setFormError(null);
+                }}
                 disabled={createMutation.isPending}
                 autoComplete="off"
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="teacher-password">Password <span className="text-destructive">*</span></Label>
+              <Label htmlFor="teacher-password">
+                Password <span className="text-destructive">*</span>
+              </Label>
               <div className="relative">
                 <Input
                   id="teacher-password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Min. 6 characters"
                   value={form.password}
-                  onChange={(e) => { setForm((p) => ({ ...p, password: e.target.value })); setFormError(null); }}
+                  onChange={(e) => {
+                    setForm((p) => ({ ...p, password: e.target.value }));
+                    setFormError(null);
+                  }}
                   className="pr-10"
                   disabled={createMutation.isPending}
                   autoComplete="new-password"
@@ -354,19 +424,28 @@ export default function ManageTeachers() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   tabIndex={-1}
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="teacher-confirm">Confirm Password <span className="text-destructive">*</span></Label>
+              <Label htmlFor="teacher-confirm">
+                Confirm Password <span className="text-destructive">*</span>
+              </Label>
               <div className="relative">
                 <Input
                   id="teacher-confirm"
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="Re-enter password"
                   value={form.confirmPassword}
-                  onChange={(e) => { setForm((p) => ({ ...p, confirmPassword: e.target.value })); setFormError(null); }}
+                  onChange={(e) => {
+                    setForm((p) => ({ ...p, confirmPassword: e.target.value }));
+                    setFormError(null);
+                  }}
                   className="pr-10"
                   disabled={createMutation.isPending}
                   autoComplete="new-password"
@@ -377,23 +456,42 @@ export default function ManageTeachers() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   tabIndex={-1}
                 >
-                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showConfirmPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
             </div>
             {formError && (
-              <div className="p-3 rounded-lg text-sm font-medium"
-                style={{ background: "oklch(0.97 0.02 25)", color: "oklch(0.45 0.2 25)", border: "1px solid oklch(0.85 0.08 25)" }}>
+              <div
+                className="p-3 rounded-lg text-sm font-medium"
+                style={{
+                  background: "oklch(0.97 0.02 25)",
+                  color: "oklch(0.45 0.2 25)",
+                  border: "1px solid oklch(0.85 0.08 25)",
+                }}
+              >
                 {formError}
               </div>
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAddDialogOpen(false)} disabled={createMutation.isPending}>
+            <Button
+              variant="outline"
+              onClick={() => setAddDialogOpen(false)}
+              disabled={createMutation.isPending}
+            >
               Cancel
             </Button>
-            <Button onClick={handleAddTeacher} disabled={createMutation.isPending}>
-              {createMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button
+              onClick={handleAddTeacher}
+              disabled={createMutation.isPending}
+            >
+              {createMutation.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
               Create Account
             </Button>
           </DialogFooter>
@@ -401,13 +499,18 @@ export default function ManageTeachers() {
       </Dialog>
 
       {/* Delete Confirm */}
-      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Teacher Account?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the account for <strong>{teacherToDelete?.name}</strong>{" "}
-              (username: <code className="font-mono text-xs">{deleteTarget}</code>). This action cannot be undone.
+              This will permanently delete the account for{" "}
+              <strong>{teacherToDelete?.name}</strong> (username:{" "}
+              <code className="font-mono text-xs">{deleteTarget}</code>). This
+              action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -416,7 +519,9 @@ export default function ManageTeachers() {
               onClick={handleDeleteTeacher}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {deleteMutation.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
               Delete Account
             </AlertDialogAction>
           </AlertDialogFooter>

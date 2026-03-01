@@ -1,15 +1,23 @@
-import { RouterProvider, createRouter, createRoute, createRootRoute, Outlet } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
-import { AuthProvider, useAuth } from "./context/AuthContext";
+import {
+  Outlet,
+  RouterProvider,
+  createRootRoute,
+  createRoute,
+  createRouter,
+} from "@tanstack/react-router";
 import Layout from "./components/Layout";
-import LoginPage from "./pages/LoginPage";
-import Dashboard from "./pages/Dashboard";
-import Students from "./pages/Students";
-import MarksEntry from "./pages/MarksEntry";
-import Feedback from "./pages/Feedback";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import AiPlans from "./pages/AiPlans";
-import Reports from "./pages/Reports";
+import Dashboard from "./pages/Dashboard";
+import Feedback from "./pages/Feedback";
+import LoginPage from "./pages/LoginPage";
 import ManageTeachers from "./pages/ManageTeachers";
+import MarksEntry from "./pages/MarksEntry";
+import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
+import Students from "./pages/Students";
 
 // --- Role Context ---
 import { createContext, useContext } from "react";
@@ -39,7 +47,9 @@ function RootLayout() {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-          <p className="text-sm text-muted-foreground font-medium">Loading EduTrack AI...</p>
+          <p className="text-sm text-muted-foreground font-medium">
+            Loading EduTrack AI...
+          </p>
         </div>
       </div>
     );
@@ -106,6 +116,12 @@ const manageTeachersRoute = createRoute({
   component: ManageTeachers,
 });
 
+const settingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/settings",
+  component: Settings,
+});
+
 const routeTree = rootRoute.addChildren([
   dashboardRoute,
   studentsRoute,
@@ -114,6 +130,7 @@ const routeTree = rootRoute.addChildren([
   aiPlansRoute,
   reportsRoute,
   manageTeachersRoute,
+  settingsRoute,
 ]);
 
 const router = createRouter({ routeTree });
@@ -135,8 +152,10 @@ function AppInner() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppInner />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AppInner />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

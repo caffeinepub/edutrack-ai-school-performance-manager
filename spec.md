@@ -2,45 +2,44 @@
 
 ## Current State
 
-The app has a fully working school management system with:
-- Username/password login with admin and teacher roles
-- Admin Dashboard showing total students, weak count, high-risk count, subject-wise bar chart, high-risk student list
-- Teacher Dashboard showing the same view but without admin-specific controls
-- Students page with CRUD and class/section filters
-- Marks Entry, Feedback, AI Plans, Reports, Manage Teachers pages
-
-The dashboard currently shows overall stats but does NOT break down students by class or section.
+The app has a full-stack school performance management system with:
+- Login system with admin/teacher roles (username + password)
+- Admin dashboard with class/section filters and stats
+- Student CRUD with class/section dropdowns
+- Marks entry, teacher feedback, AI improvement plans, reports
+- Manage Teachers page (admin-only) for creating/deleting teacher accounts
+- Layout with sidebar navigation and top bar with user dropdown (only logout option)
+- The backend already has a `changePassword(sessionToken, oldPassword, newPassword)` function
 
 ## Requested Changes (Diff)
 
 ### Add
-- Class/section breakdown tabs or filter on the Dashboard (both admin and teacher view)
-- A "Students by Class" section on the dashboard: shows a summary card/row per class (e.g. Class 7, 8, 9, 10) with count of total, weak, and high-risk students in that class
-- A class/section filter dropdown on the dashboard so the stats cards and high-risk list update to show only the selected class/section
-- Within the class breakdown, allow drilling into sections (Section A, B, etc.)
+- **Admin Settings page** (`/settings`) accessible only to admin role
+- **Change Password section** on the settings page: form with current password, new password, confirm new password fields; uses existing `changePassword` backend API; shows success/error feedback
+- **Theme Selector section**: toggle between the current "Blue" theme and a "Dark" (dark mode) theme variant; theme preference persisted in localStorage
+- **Profile section**: display current admin username and display name (read-only)
+- Settings link in the sidebar nav (admin-only), using a Settings icon
+- Settings shortcut in the top-bar user dropdown menu alongside logout
 
 ### Modify
-- Dashboard page: add class/section filter UI at the top (after the page header), filter the stats cards and high-risk table based on selected class and section
-- Dashboard: add a new "By Class" summary table/grid showing per-class breakdown of student counts and risk levels
-- Keep all existing features intact
+- `Sidebar.tsx` - add Settings nav item to `adminNavItems`
+- `Layout.tsx` - add "Settings" item in the user dropdown that navigates to `/settings`
+- `App.tsx` - register the new `/settings` route
+- `index.css` - add dark theme CSS variable block (`.dark` class on `<html>`)
+- `AuthContext.tsx` or a new `ThemeContext` - manage dark/light theme toggle and persist to localStorage
 
 ### Remove
-- Nothing
+- Nothing removed
 
 ## Implementation Plan
 
-1. Update Dashboard.tsx to add:
-   - Two filter dropdowns: "All Classes" and "All Sections"
-   - Filter the students/marks data used for stats computation based on selected class/section
-   - A "Students by Class" breakdown section showing a summary table with columns: Class, Total Students, Weak, High Risk, % At Risk
-   - Color-coded rows (red for high % at risk, orange for moderate, green for good)
-2. Ensure filters work for both admin and teacher roles
-
-## UX Notes
-
-- Class filter options: All Classes, then each unique class found in students data (7, 8, 9, 10, etc.)
-- Section filter options: All Sections, A, B, C, D
-- When a class is selected, show only sections present in that class
-- Stats cards update live based on filters
-- The "Students by Class" table always shows all classes (unfiltered) for a global overview
-- On mobile, stack the filter dropdowns vertically
+1. Add dark mode CSS variables in `index.css` under a `.dark` selector (dark navy/charcoal palette)
+2. Create `ThemeContext.tsx` to manage and persist theme preference in localStorage; apply `.dark` class to `<html>` element
+3. Wrap `App.tsx` with `ThemeProvider`
+4. Create `src/frontend/src/pages/Settings.tsx`:
+   - Profile card: shows username and display name (read-only)
+   - Change Password card: three-field form (current, new, confirm); calls `changePassword` API; inline validation (passwords must match, min 6 chars); success toast and error display
+   - Theme card: two visual theme tiles (Blue/Default, Dark) with active indicator; clicking a tile switches and persists the theme
+5. Register `/settings` route in `App.tsx`
+6. Add Settings nav item to `adminNavItems` in `Sidebar.tsx`
+7. Add Settings menu item to user dropdown in `Layout.tsx`

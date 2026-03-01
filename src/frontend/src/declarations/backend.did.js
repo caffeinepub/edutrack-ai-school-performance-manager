@@ -13,6 +13,19 @@ export const UserRole = IDL.Variant({
   'user' : IDL.Null,
   'guest' : IDL.Null,
 });
+export const Time = IDL.Int;
+export const AiPlan = IDL.Record({
+  'id' : IDL.Nat,
+  'status' : IDL.Text,
+  'basedOnExamType' : IDL.Text,
+  'studentId' : IDL.Nat,
+  'aiPlanText' : IDL.Text,
+  'improvementTargetPercentage' : IDL.Float64,
+  'planVersion' : IDL.Nat,
+  'basedOnAverage' : IDL.Float64,
+  'generatedDate' : Time,
+  'performanceSnapshot' : IDL.Text,
+});
 export const AdminStats = IDL.Record({
   'weakCount' : IDL.Nat,
   'totalStudents' : IDL.Nat,
@@ -51,7 +64,6 @@ export const StudentAnalysis = IDL.Record({
   'isWeak' : IDL.Bool,
   'weakSubjects' : IDL.Vec(IDL.Text),
 });
-export const Time = IDL.Int;
 
 export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
@@ -80,6 +92,7 @@ export const idlService = IDL.Service({
       [IDL.Variant({ 'ok' : IDL.Null, 'err' : IDL.Text })],
       [],
     ),
+  'constructor' : IDL.Func([], [], ['oneway']),
   'createStudent' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
       [IDL.Nat],
@@ -96,12 +109,18 @@ export const idlService = IDL.Service({
       [IDL.Variant({ 'ok' : IDL.Null, 'err' : IDL.Text })],
       [],
     ),
-  'generateImprovementPlan' : IDL.Func(
+  'generateAndSaveAiPlan' : IDL.Func(
+      [IDL.Text, IDL.Nat, IDL.Bool],
+      [IDL.Variant({ 'ok' : AiPlan, 'err' : IDL.Text })],
+      [],
+    ),
+  'generateImprovementPlan' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Text], []),
+  'getAdminStats' : IDL.Func([IDL.Text], [AdminStats], ['query']),
+  'getAiPlansByStudent' : IDL.Func(
       [IDL.Text, IDL.Nat],
-      [IDL.Text],
+      [IDL.Vec(AiPlan)],
       ['query'],
     ),
-  'getAdminStats' : IDL.Func([IDL.Text], [AdminStats], ['query']),
   'getAllFeedback' : IDL.Func([IDL.Text], [IDL.Vec(Feedback)], ['query']),
   'getAllMarks' : IDL.Func([IDL.Text], [IDL.Vec(Mark)], ['query']),
   'getAllStudents' : IDL.Func([IDL.Text], [IDL.Vec(Student)], ['query']),
@@ -126,6 +145,11 @@ export const idlService = IDL.Service({
       [IDL.Vec(Feedback)],
       ['query'],
     ),
+  'getLatestAiPlan' : IDL.Func(
+      [IDL.Text, IDL.Nat],
+      [IDL.Opt(AiPlan)],
+      ['query'],
+    ),
   'getMarksByStudent' : IDL.Func(
       [IDL.Text, IDL.Nat],
       [IDL.Vec(Mark)],
@@ -142,6 +166,7 @@ export const idlService = IDL.Service({
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
+  'initializeApp' : IDL.Func([], [IDL.Text], []),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'listTeacherAccounts' : IDL.Func(
       [IDL.Text],
@@ -175,6 +200,11 @@ export const idlService = IDL.Service({
     ),
   'logout' : IDL.Func([IDL.Text], [IDL.Bool], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'updateAiPlanStatus' : IDL.Func(
+      [IDL.Text, IDL.Nat, IDL.Text],
+      [IDL.Variant({ 'ok' : IDL.Null, 'err' : IDL.Text })],
+      [],
+    ),
   'updateStudent' : IDL.Func(
       [IDL.Text, IDL.Nat, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
       [IDL.Bool],
@@ -203,6 +233,19 @@ export const idlFactory = ({ IDL }) => {
     'admin' : IDL.Null,
     'user' : IDL.Null,
     'guest' : IDL.Null,
+  });
+  const Time = IDL.Int;
+  const AiPlan = IDL.Record({
+    'id' : IDL.Nat,
+    'status' : IDL.Text,
+    'basedOnExamType' : IDL.Text,
+    'studentId' : IDL.Nat,
+    'aiPlanText' : IDL.Text,
+    'improvementTargetPercentage' : IDL.Float64,
+    'planVersion' : IDL.Nat,
+    'basedOnAverage' : IDL.Float64,
+    'generatedDate' : Time,
+    'performanceSnapshot' : IDL.Text,
   });
   const AdminStats = IDL.Record({
     'weakCount' : IDL.Nat,
@@ -242,7 +285,6 @@ export const idlFactory = ({ IDL }) => {
     'isWeak' : IDL.Bool,
     'weakSubjects' : IDL.Vec(IDL.Text),
   });
-  const Time = IDL.Int;
   
   return IDL.Service({
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
@@ -271,6 +313,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Variant({ 'ok' : IDL.Null, 'err' : IDL.Text })],
         [],
       ),
+    'constructor' : IDL.Func([], [], ['oneway']),
     'createStudent' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
         [IDL.Nat],
@@ -287,12 +330,18 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Variant({ 'ok' : IDL.Null, 'err' : IDL.Text })],
         [],
       ),
-    'generateImprovementPlan' : IDL.Func(
+    'generateAndSaveAiPlan' : IDL.Func(
+        [IDL.Text, IDL.Nat, IDL.Bool],
+        [IDL.Variant({ 'ok' : AiPlan, 'err' : IDL.Text })],
+        [],
+      ),
+    'generateImprovementPlan' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Text], []),
+    'getAdminStats' : IDL.Func([IDL.Text], [AdminStats], ['query']),
+    'getAiPlansByStudent' : IDL.Func(
         [IDL.Text, IDL.Nat],
-        [IDL.Text],
+        [IDL.Vec(AiPlan)],
         ['query'],
       ),
-    'getAdminStats' : IDL.Func([IDL.Text], [AdminStats], ['query']),
     'getAllFeedback' : IDL.Func([IDL.Text], [IDL.Vec(Feedback)], ['query']),
     'getAllMarks' : IDL.Func([IDL.Text], [IDL.Vec(Mark)], ['query']),
     'getAllStudents' : IDL.Func([IDL.Text], [IDL.Vec(Student)], ['query']),
@@ -317,6 +366,11 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(Feedback)],
         ['query'],
       ),
+    'getLatestAiPlan' : IDL.Func(
+        [IDL.Text, IDL.Nat],
+        [IDL.Opt(AiPlan)],
+        ['query'],
+      ),
     'getMarksByStudent' : IDL.Func(
         [IDL.Text, IDL.Nat],
         [IDL.Vec(Mark)],
@@ -333,6 +387,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
+    'initializeApp' : IDL.Func([], [IDL.Text], []),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'listTeacherAccounts' : IDL.Func(
         [IDL.Text],
@@ -366,6 +421,11 @@ export const idlFactory = ({ IDL }) => {
       ),
     'logout' : IDL.Func([IDL.Text], [IDL.Bool], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'updateAiPlanStatus' : IDL.Func(
+        [IDL.Text, IDL.Nat, IDL.Text],
+        [IDL.Variant({ 'ok' : IDL.Null, 'err' : IDL.Text })],
+        [],
+      ),
     'updateStudent' : IDL.Func(
         [IDL.Text, IDL.Nat, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
         [IDL.Bool],

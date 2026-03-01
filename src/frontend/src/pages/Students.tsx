@@ -1,34 +1,3 @@
-import { useState } from "react";
-import { useAllStudents, useCreateStudent, useUpdateStudent, useDeleteStudent } from "../hooks/useQueries";
-import { toast } from "sonner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,10 +8,57 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Pencil, Trash2, Users, Search, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Loader2, Pencil, Plus, Search, Trash2, Users } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import type { Student } from "../backend.d";
+import {
+  useAllStudents,
+  useCreateStudent,
+  useDeleteStudent,
+  useUpdateStudent,
+} from "../hooks/useQueries";
 
-const CLASSES = ["Class 1", "Class 2", "Class 3", "Class 4", "Class 5", "Class 6", "Class 7", "Class 8", "Class 9", "Class 10"];
+const CLASSES = [
+  "Class 1",
+  "Class 2",
+  "Class 3",
+  "Class 4",
+  "Class 5",
+  "Class 6",
+  "Class 7",
+  "Class 8",
+  "Class 9",
+  "Class 10",
+];
 const SECTIONS = ["A", "B", "C", "D"];
 
 interface StudentFormData {
@@ -111,7 +127,7 @@ export default function Students() {
       }
       setModalOpen(false);
       setForm(emptyForm);
-    } catch (e) {
+    } catch (_e) {
       toast.error("Operation failed. Please try again.");
     }
   };
@@ -128,7 +144,8 @@ export default function Students() {
   };
 
   const filtered = students.filter((s) => {
-    const matchSearch = s.name.toLowerCase().includes(search.toLowerCase()) ||
+    const matchSearch =
+      s.name.toLowerCase().includes(search.toLowerCase()) ||
       s.rollNumber.toLowerCase().includes(search.toLowerCase());
     const matchClass = filterClass === "all" || s.className === filterClass;
     const matchSection = filterSection === "all" || s.section === filterSection;
@@ -170,7 +187,11 @@ export default function Students() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Classes</SelectItem>
-            {CLASSES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            {CLASSES.map((c) => (
+              <SelectItem key={c} value={c}>
+                {c}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Select value={filterSection} onValueChange={setFilterSection}>
@@ -179,7 +200,11 @@ export default function Students() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Sections</SelectItem>
-            {SECTIONS.map((s) => <SelectItem key={s} value={s}>Section {s}</SelectItem>)}
+            {SECTIONS.map((s) => (
+              <SelectItem key={s} value={s}>
+                Section {s}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -196,16 +221,23 @@ export default function Students() {
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-4 space-y-3">
-              {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-12 w-full" />)}
+              {[1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
             </div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: "oklch(0.94 0.02 240)" }}>
+              <div
+                className="w-12 h-12 rounded-full flex items-center justify-center"
+                style={{ background: "oklch(0.94 0.02 240)" }}
+              >
                 <Users className="w-6 h-6 opacity-40" />
               </div>
               <div className="text-center">
                 <p className="font-medium text-sm">No students found</p>
-                <p className="text-xs mt-0.5">Try adjusting filters or add a new student</p>
+                <p className="text-xs mt-0.5">
+                  Try adjusting filters or add a new student
+                </p>
               </div>
             </div>
           ) : (
@@ -224,15 +256,21 @@ export default function Students() {
                 <TableBody>
                   {filtered.map((student) => (
                     <TableRow key={student.id.toString()}>
-                      <TableCell className="font-medium">{student.name}</TableCell>
-                      <TableCell className="text-muted-foreground font-mono text-sm">{student.rollNumber}</TableCell>
+                      <TableCell className="font-medium">
+                        {student.name}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground font-mono text-sm">
+                        {student.rollNumber}
+                      </TableCell>
                       <TableCell>{student.className}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className="font-medium">
                           {student.section}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">{student.parentPhone || "—"}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {student.parentPhone || "—"}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
                           <Button
@@ -266,47 +304,77 @@ export default function Students() {
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>{editStudent ? "Edit Student" : "Add New Student"}</DialogTitle>
+            <DialogTitle>
+              {editStudent ? "Edit Student" : "Add New Student"}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label htmlFor="name">Full Name <span className="text-destructive">*</span></Label>
+              <Label htmlFor="name">
+                Full Name <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="name"
                 placeholder="e.g. Aarav Sharma"
                 value={form.name}
-                onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, name: e.target.value }))
+                }
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="rollNumber">Roll Number <span className="text-destructive">*</span></Label>
+              <Label htmlFor="rollNumber">
+                Roll Number <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="rollNumber"
                 placeholder="e.g. 2024001"
                 value={form.rollNumber}
-                onChange={(e) => setForm((p) => ({ ...p, rollNumber: e.target.value }))}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, rollNumber: e.target.value }))
+                }
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>Class <span className="text-destructive">*</span></Label>
-                <Select value={form.className} onValueChange={(v) => setForm((p) => ({ ...p, className: v }))}>
+                <Label>
+                  Class <span className="text-destructive">*</span>
+                </Label>
+                <Select
+                  value={form.className}
+                  onValueChange={(v) =>
+                    setForm((p) => ({ ...p, className: v }))
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select class" />
                   </SelectTrigger>
                   <SelectContent>
-                    {CLASSES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    {CLASSES.map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {c}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label>Section <span className="text-destructive">*</span></Label>
-                <Select value={form.section} onValueChange={(v) => setForm((p) => ({ ...p, section: v }))}>
+                <Label>
+                  Section <span className="text-destructive">*</span>
+                </Label>
+                <Select
+                  value={form.section}
+                  onValueChange={(v) => setForm((p) => ({ ...p, section: v }))}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select section" />
                   </SelectTrigger>
                   <SelectContent>
-                    {SECTIONS.map((s) => <SelectItem key={s} value={s}>Section {s}</SelectItem>)}
+                    {SECTIONS.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        Section {s}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -317,12 +385,16 @@ export default function Students() {
                 id="phone"
                 placeholder="e.g. +91 98765 43210"
                 value={form.parentPhone}
-                onChange={(e) => setForm((p) => ({ ...p, parentPhone: e.target.value }))}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, parentPhone: e.target.value }))
+                }
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setModalOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setModalOpen(false)}>
+              Cancel
+            </Button>
             <Button onClick={handleSubmit} disabled={isPending}>
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {editStudent ? "Update Student" : "Add Student"}
@@ -332,12 +404,16 @@ export default function Students() {
       </Dialog>
 
       {/* Delete Confirm */}
-      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Student?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete <strong>{deleteTarget?.name}</strong> and all associated records. This action cannot be undone.
+              This will permanently delete <strong>{deleteTarget?.name}</strong>{" "}
+              and all associated records. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -346,7 +422,9 @@ export default function Students() {
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {deleteMutation.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
